@@ -1,0 +1,3697 @@
+/**
+ * Cinematic Sanctuary Engine
+ * - Multi-Role Auth: Yash (Admin) & Glory (VIP User)
+ * - Cinema Glass Text Animation (30+ Google fonts rapid cycling)
+ * - Auto-on audio & seamless looping video engine
+ * - Admin Broadcast Studio with video upload & IndexedDB persistent storage
+ */
+
+(function () {
+  'use strict';
+
+  // --- Core DOM Elements ---
+  const bgVideo = document.getElementById('bgVideo');
+  const bgVideoBlur = document.getElementById('bgVideoBlur');
+  const loginForm = document.getElementById('loginForm');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const usernameError = document.getElementById('usernameError');
+  const passwordError = document.getElementById('passwordError');
+  const eyeToggle = document.getElementById('eyeToggle');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginSpinner = document.getElementById('loginSpinner');
+  const toastContainer = document.getElementById('toastContainer');
+  const cinematicText = document.getElementById('cinematicText');
+
+  // Dashboard & Feed DOM Elements
+  const gloryIntroScreen = document.getElementById('gloryIntroScreen');
+  const introCinematicText = document.getElementById('introCinematicText');
+  const introProgressBar = document.getElementById('introProgressBar');
+  const introCountdownText = document.getElementById('introCountdownText');
+  const gloryFeed = document.getElementById('gloryFeed');
+  const reelsWrapper = document.getElementById('reelsWrapper');
+  const feedSoundBtn = document.getElementById('feedSoundBtn');
+  const feedSignOutBtn = document.getElementById('feedSignOutBtn');
+  const feedPrevBtn = document.getElementById('feedPrevBtn');
+  const feedNextBtn = document.getElementById('feedNextBtn');
+  const feedCounter = document.getElementById('feedCounter');
+  const feedNavControls = document.getElementById('feedNavControls');
+  const videoContainer = document.getElementById('videoContainer');
+  const theaterStage = document.getElementById('theaterStage');
+
+  // Admin Studio DOM Elements
+  const adminModal = document.getElementById('adminModal');
+  const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+  const adminViewAsGloryBtn = document.getElementById('adminViewAsGloryBtn');
+  const adminViewAsYashBtn = document.getElementById('adminViewAsYashBtn');
+  const feedBadgePill = document.getElementById('feedBadgePill');
+  const feedBadgeText = document.getElementById('feedBadgeText');
+  const feedBackToStudioBtn = document.getElementById('feedBackToStudioBtn');
+  const adminReelPositionSelect = document.getElementById('adminReelPositionSelect');
+  let isYashViewer = false;
+  const adminFormModeBadge = document.getElementById('adminFormModeBadge');
+  const adminFormModeText = document.getElementById('adminFormModeText');
+  const adminCancelEditBtn = document.getElementById('adminCancelEditBtn');
+  const adminTitleInput = document.getElementById('adminTitleInput');
+  const adminMsgInput = document.getElementById('adminMsgInput');
+  const adminMiniGlassPreview = document.getElementById('adminMiniGlassPreview');
+  const tabVideoMode = document.getElementById('tabVideoMode');
+  const tabTextOnlyMode = document.getElementById('tabTextOnlyMode');
+  const mediaOptionHint = document.getElementById('mediaOptionHint');
+  const videoMediaPane = document.getElementById('videoMediaPane');
+  const textOnlyMediaPane = document.getElementById('textOnlyMediaPane');
+  const adminDropzone = document.getElementById('adminDropzone');
+  const adminVideoFile = document.getElementById('adminVideoFile');
+  const dropzoneMainText = document.getElementById('dropzoneMainText');
+  const dropzoneSubText = document.getElementById('dropzoneSubText');
+  const adminPreviewVideo = document.getElementById('adminPreviewVideo');
+  const previewBadgeStatus = document.getElementById('previewBadgeStatus');
+  const presetBtns = document.querySelectorAll('.preset-btn');
+  const adminSaveReelBtn = document.getElementById('adminSaveReelBtn');
+  const adminSaveBtnText = document.getElementById('adminSaveBtnText');
+  const adminReelsCount = document.getElementById('adminReelsCount');
+  const adminReelsList = document.getElementById('adminReelsList');
+  const adminRepliesCount = document.getElementById('adminRepliesCount');
+  const adminClearRepliesBtn = document.getElementById('adminClearRepliesBtn');
+  const adminRepliesList = document.getElementById('adminRepliesList');
+
+  // Admin Studio Tabs & Metrics DOM Elements
+  const adminStatReels = document.getElementById('adminStatReels');
+  const adminStatLikes = document.getElementById('adminStatLikes');
+  const adminStatReplies = document.getElementById('adminStatReplies');
+  const adminStatLogins = document.getElementById('adminStatLogins');
+  const adminStatCloud = document.getElementById('adminStatCloud');
+  const adminStatCloudLabel = document.getElementById('adminStatCloudLabel');
+  const tabBadgeReplies = document.getElementById('tabBadgeReplies');
+  const tabBadgeLogins = document.getElementById('tabBadgeLogins');
+
+  const tabNavReels = document.getElementById('tabNavReels');
+  const tabNavReplies = document.getElementById('tabNavReplies');
+  const tabNavLogins = document.getElementById('tabNavLogins');
+  const tabNavCloud = document.getElementById('tabNavCloud');
+
+  const adminTabPaneReels = document.getElementById('adminTabPaneReels');
+  const adminTabPaneReplies = document.getElementById('adminTabPaneReplies');
+  const adminTabPaneLogins = document.getElementById('adminTabPaneLogins');
+  const adminTabPaneCloud = document.getElementById('adminTabPaneCloud');
+
+  const adminLoginsCount = document.getElementById('adminLoginsCount');
+  const adminClearLoginsBtn = document.getElementById('adminClearLoginsBtn');
+  const adminLastLoginTime = document.getElementById('adminLastLoginTime');
+  const adminLastLoginDevice = document.getElementById('adminLastLoginDevice');
+  const adminLoginsList = document.getElementById('adminLoginsList');
+
+  const supabaseUrlInput = document.getElementById('supabaseUrlInput');
+  const supabaseKeyInput = document.getElementById('supabaseKeyInput');
+  const saveSupabaseSettingsBtn = document.getElementById('saveSupabaseSettingsBtn');
+  const testSupabaseSyncBtn = document.getElementById('testSupabaseSyncBtn');
+  const supabaseStatusBadge = document.getElementById('supabaseStatusBadge');
+
+  // --- Rapid 30+ Fonts Cycling Engine (Runs Immediately) ---
+  const fonts = [
+    ["Cinzel", "0.08em"],
+    ["Bebas Neue", "0.12em"],
+    ["Anton", "0.04em"],
+    ["Abril Fatface", "0.02em"],
+    ["Black Ops One", "0.06em"],
+    ["Bodoni Moda", "0.05em"],
+    ["DM Serif Display", "0.03em"],
+    ["Fjalla One", "0.08em"],
+    ["Great Vibes", "0.01em"],
+    ["Josefin Sans", "0.12em"],
+    ["Lobster", "0.01em"],
+    ["Major Mono Display", "0.05em"],
+    ["Montserrat", "0.08em"],
+    ["Orbitron", "0.10em"],
+    ["Oswald", "0.08em"],
+    ["Pacifico", "0.01em"],
+    ["Permanent Marker", "0.02em"],
+    ["Playfair Display", "0.04em"],
+    ["Poiret One", "0.10em"],
+    ["Raleway", "0.09em"],
+    ["Righteous", "0.06em"],
+    ["Roboto Mono", "0.05em"],
+    ["Rubik", "0.08em"],
+    ["Russo One", "0.06em"],
+    ["Space Grotesk", "0.07em"],
+    ["Special Elite", "0.04em"],
+    ["Unbounded", "0.08em"],
+    ["Yellowtail", "0.02em"],
+    ["Comfortaa", "0.06em"]
+  ];
+
+  let fontIndex = 0;
+
+  function changeFont() {
+    // ONLY cycle font animation for login page when no authenticated user is logged in
+    const currentRole = localStorage.getItem('cinema_session_role');
+    if (currentRole === 'admin' || currentRole === 'glory') return;
+
+    const loginCinemaText = document.getElementById('cinematicText');
+    if (!loginCinemaText) return;
+    const current = fonts[fontIndex];
+    const scale = 0.98 + Math.random() * 0.04;
+
+    loginCinemaText.style.fontFamily = `"${current[0]}", sans-serif`;
+    loginCinemaText.style.letterSpacing = current[1];
+    loginCinemaText.style.transform = `scale(${scale})`;
+
+    fontIndex++;
+    if (fontIndex >= fonts.length) {
+      fontIndex = 0;
+    }
+  }
+
+  setInterval(changeFont, 50);
+  changeFont();
+
+  // --- Constants & Defaults ---
+  const GLORY_INTRO_TEXT = "hi glory last msg form yash";
+  const DEFAULT_ADMIN_TEXT = "";
+  const DEFAULT_INTRO_VIDEO = "assets/love_story_1.mp4";
+  const DEFAULT_ADMIN_VIDEO = "assets/love_story_1.mp4";
+
+  // --- IndexedDB for Large Video Blobs ---
+  const DB_NAME = 'CinemaVaultDB';
+  const STORE_NAME = 'videos';
+
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        if (!req.result.objectStoreNames.contains(STORE_NAME)) {
+          req.result.createObjectStore(STORE_NAME);
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  const blobUrlCache = new Map();
+
+  async function saveVideoBlob(blobOrFile, key = 'broadcastVideo') {
+    try {
+      const pureBlob = blobOrFile;
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(pureBlob, key);
+        tx.oncomplete = () => {
+          if (blobUrlCache.has(key)) {
+            URL.revokeObjectURL(blobUrlCache.get(key));
+            blobUrlCache.delete(key);
+          }
+          const url = URL.createObjectURL(pureBlob);
+          blobUrlCache.set(key, url);
+          resolve(key);
+        };
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      console.warn('IndexedDB save failed:', e);
+      return null;
+    }
+  }
+
+  async function loadVideoBlob(key = 'broadcastVideo') {
+    try {
+      const db = await openDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const req = tx.objectStore(STORE_NAME).get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    } catch (e) {
+      console.warn('IndexedDB load failed:', e);
+      return null;
+    }
+  }
+
+  async function getObjectUrlForBlob(key = 'broadcastVideo') {
+    if (!key) return null;
+    if (blobUrlCache.has(key)) {
+      return blobUrlCache.get(key);
+    }
+    const blob = await loadVideoBlob(key);
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      blobUrlCache.set(key, url);
+      return url;
+    }
+    return null;
+  }
+
+  async function deleteVideoBlob(key) {
+    if (!key) return;
+    if (blobUrlCache.has(key)) {
+      URL.revokeObjectURL(blobUrlCache.get(key));
+      blobUrlCache.delete(key);
+    }
+    try {
+      const db = await openDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).delete(key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      });
+    } catch (e) {
+      console.warn('IndexedDB delete failed:', e);
+    }
+  }
+
+  // --- Video Engine (Auto-Play & Auto-Loop) ---
+  function safePlayVideo(video) {
+    if (!video) return;
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        video.muted = true;
+        video.play().catch(() => {});
+      });
+    }
+  }
+
+  // Initial video setup
+  safePlayVideo(bgVideo);
+  if (bgVideoBlur) {
+    bgVideoBlur.muted = true;
+    safePlayVideo(bgVideoBlur);
+  }
+
+  // --- Auto-Play Audio Engine (Zero Tap Prompts) ---
+  bgVideo.muted = false;
+  bgVideo.volume = 1.0;
+
+  function activateSound() {
+    if (theaterStage && !theaterStage.classList.contains('hidden')) {
+      bgVideo.muted = false;
+      bgVideo.volume = 1.0;
+      bgVideo.play().catch(() => {});
+    }
+  }
+
+  // Immediate sound playback attempt
+  const initialPlay = bgVideo.play();
+  if (initialPlay !== undefined) {
+    initialPlay.then(() => {
+      bgVideo.muted = false;
+      bgVideo.volume = 1.0;
+    }).catch(() => {
+      // If mobile policy requires 1 gesture, start muted and silently unmute on first touch
+      bgVideo.muted = true;
+      bgVideo.play().catch(() => {});
+    });
+  }
+
+  // Silently unlock sound at full volume on ANY user touch or movement
+  ['touchstart', 'touchend', 'touchmove', 'pointerdown', 'pointerup', 'pointermove', 'mousedown', 'click', 'keydown', 'scroll'].forEach(evt => {
+    window.addEventListener(evt, activateSound, { passive: true, once: true });
+    document.addEventListener(evt, activateSound, { passive: true, once: true });
+  });
+
+  usernameInput.addEventListener('focus', activateSound);
+  passwordInput.addEventListener('focus', activateSound);
+
+  // --- Cinema Glass Text Management ---
+  function updateCinemaDisplay(text) {
+    if (!cinematicText) return;
+    cinematicText.textContent = text;
+    cinematicText.setAttribute('data-text', text);
+  }
+
+  // --- Dynamic Video Engine ---
+  let activeCustomBlobUrl = null;
+
+  function setBothVideosSource(src) {
+    if (!src) return;
+    const currentSrc = bgVideo.currentSrc || bgVideo.src;
+    if (!currentSrc.endsWith(src) && bgVideo.src !== src) {
+      bgVideo.src = src;
+      if (bgVideoBlur) bgVideoBlur.src = src;
+      bgVideo.load();
+      if (bgVideoBlur) bgVideoBlur.load();
+    }
+    safePlayVideo(bgVideo);
+    if (bgVideoBlur) safePlayVideo(bgVideoBlur);
+    activateSound();
+  }
+
+  function playIntroVideo() {
+    setBothVideosSource(DEFAULT_INTRO_VIDEO);
+  }
+
+  async function applyAdminUploadedVideo() {
+    const hasCustom = localStorage.getItem('cinema_has_custom_video');
+    if (hasCustom === 'true') {
+      const blob = await loadVideoBlob();
+      if (blob) {
+        if (activeCustomBlobUrl) URL.revokeObjectURL(activeCustomBlobUrl);
+        activeCustomBlobUrl = URL.createObjectURL(blob);
+        setBothVideosSource(activeCustomBlobUrl);
+        return;
+      }
+    }
+
+    const preset = localStorage.getItem('cinema_active_video') || DEFAULT_ADMIN_VIDEO;
+    setBothVideosSource(preset);
+  }
+
+  // --- Toast Notification Center ---
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    let icon = '✦';
+    if (type === 'success') icon = '✓';
+    if (type === 'error') icon = '✕';
+
+    toast.innerHTML = `<span style="font-weight:700;">${icon}</span><span>${message}</span>`;
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('visible'), 20);
+    setTimeout(() => {
+      toast.classList.remove('visible');
+      setTimeout(() => toast.remove(), 350);
+    }, 3000);
+  }
+
+  function shakeForm() {
+    loginForm.classList.remove('shake-form');
+    void loginForm.offsetWidth;
+    loginForm.classList.add('shake-form');
+  }
+
+  // --- Password Peek Toggle ---
+  eyeToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const showIcon = eyeToggle.querySelector('.eye-show');
+    const hideIcon = eyeToggle.querySelector('.eye-hide');
+
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      showIcon.classList.add('hidden');
+      hideIcon.classList.remove('hidden');
+    } else {
+      passwordInput.type = 'password';
+      showIcon.classList.remove('hidden');
+      hideIcon.classList.add('hidden');
+    }
+  });
+
+  // --- Glory Full-Screen N-Reels Controller & Admin Studio Engine ---
+  let feedMuted = false;
+  let currentFeedIndex = 1;
+  let feedObjectUrls = [];
+  let reelsObserver = null;
+  let reelControlsInitialized = false;
+
+  // Editor State
+  let editingReelId = null;
+  let selectedMediaType = 'video'; // 'video' | 'textonly'
+  let stagedCustomVideoBlob = null;
+  let activePresetSrc = '';
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // --- Reel Storage Manager (Up to N Reels) ---
+  function getReels() {
+    try {
+      const raw = localStorage.getItem('cinema_admin_reels');
+      if (raw !== null) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Error reading reels:', e);
+    }
+    return [];
+  }
+
+  function saveReels(reels) {
+    localStorage.setItem('cinema_admin_reels', JSON.stringify(reels));
+    localStorage.setItem('cinema_broadcast_time', Date.now().toString());
+    if (reels.length > 0) {
+      localStorage.setItem('cinema_admin_uploaded_text', reels[0].text);
+    }
+  }
+
+  // --- Admin Studio Media Selector (Video is Optional!) ---
+  function setMediaMode(mode) {
+    selectedMediaType = mode;
+    if (tabVideoMode && tabTextOnlyMode) {
+      tabVideoMode.classList.toggle('active', mode === 'video');
+      tabTextOnlyMode.classList.toggle('active', mode === 'textonly');
+    }
+    if (videoMediaPane && textOnlyMediaPane) {
+      videoMediaPane.classList.toggle('hidden', mode === 'textonly');
+      textOnlyMediaPane.classList.toggle('hidden', mode === 'video');
+    }
+    if (mediaOptionHint) {
+      mediaOptionHint.textContent = mode === 'video' ? '🎬 Video Reel Mode' : '✍️ Text-Only Luxury Cinema Card';
+    }
+  }
+
+  if (tabVideoMode) tabVideoMode.addEventListener('click', () => setMediaMode('video'));
+  if (tabTextOnlyMode) tabTextOnlyMode.addEventListener('click', () => setMediaMode('textonly'));
+
+  // --- Live Mini Cinema Glass Preview in Admin Studio ---
+  function updateLiveGlassPreview() {
+    if (!adminMiniGlassPreview || !adminMsgInput) return;
+    const text = adminMsgInput.value.trim();
+    if (text) {
+      adminMiniGlassPreview.textContent = text;
+      adminMiniGlassPreview.setAttribute('data-text', text);
+      adminMiniGlassPreview.style.opacity = '1';
+    } else {
+      adminMiniGlassPreview.textContent = 'Preview appears as you type...';
+      adminMiniGlassPreview.setAttribute('data-text', '');
+      adminMiniGlassPreview.style.opacity = '0.35';
+    }
+  }
+
+  if (adminMsgInput) {
+    adminMsgInput.addEventListener('input', updateLiveGlassPreview);
+  }
+
+  // --- Configurable Video Constraints ---
+  const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024; // 50MB limit
+  const ALLOWED_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov'];
+  const ALLOWED_VIDEO_MIMES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-m4v'];
+
+  // --- Upload State Machine ---
+  const UploadState = {
+    IDLE: 'idle',
+    VALIDATING: 'validating',
+    UPLOADING: 'uploading',
+    SAVING: 'saving',
+    ERROR: 'error'
+  };
+  let currentUploadState = UploadState.IDLE;
+
+  function setUploadState(state, statusText = '') {
+    currentUploadState = state;
+    if (!adminSaveReelBtn) return;
+
+    const isBusy = (state === UploadState.VALIDATING || state === UploadState.UPLOADING || state === UploadState.SAVING);
+    adminSaveReelBtn.disabled = isBusy;
+
+    if (adminSaveBtnText) {
+      if (isBusy) {
+        adminSaveBtnText.textContent = statusText || '⏳ Processing...';
+      } else {
+        adminSaveBtnText.textContent = editingReelId ? 'Save Changes' : 'Add Reel to Feed';
+      }
+    }
+  }
+
+  // --- Video File & Metadata Validation Helper ---
+  async function validateVideoFile(file) {
+    if (!file) return { valid: false, error: 'No video file selected.' };
+
+    if (file.size <= 0) {
+      return { valid: false, error: 'The selected video file is empty (0 bytes).' };
+    }
+
+    if (file.size > MAX_VIDEO_SIZE_BYTES) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      return {
+        valid: false,
+        error: `Video exceeds the 50MB limit (${sizeMb} MB). Please choose a smaller video.`
+      };
+    }
+
+    const name = (file.name || '').toLowerCase();
+    const ext = name.includes('.') ? ('.' + name.split('.').pop()) : '';
+
+    // Reject definitely unsupported non-browser containers immediately
+    const unsupported = ['.mkv', '.avi', '.3gp', '.wmv', '.flv', '.ts', '.hevc'];
+    if (ext && unsupported.includes(ext)) {
+      return {
+        valid: false,
+        error: `Format "${ext.toUpperCase()}" is not supported for web browsers. Please provide an MP4, WebM, or MOV file.`
+      };
+    }
+
+    return { valid: true };
+  }
+
+  // --- Preview Management with Single URL Revocation ---
+  let currentPreviewObjectUrl = null;
+
+  function cleanupVideoPreview() {
+    if (currentPreviewObjectUrl) {
+      URL.revokeObjectURL(currentPreviewObjectUrl);
+      currentPreviewObjectUrl = null;
+    }
+    if (adminPreviewVideo) {
+      adminPreviewVideo.removeAttribute('src');
+      adminPreviewVideo.load();
+    }
+    if (previewBadgeStatus) previewBadgeStatus.textContent = 'No Video Selected';
+  }
+
+  function setVideoPreview(fileOrUrl, label = '') {
+    cleanupVideoPreview();
+    if (!fileOrUrl) return;
+
+    if (typeof fileOrUrl === 'string') {
+      if (adminPreviewVideo) {
+        adminPreviewVideo.src = fileOrUrl;
+        adminPreviewVideo.load();
+        adminPreviewVideo.play().catch(() => {});
+      }
+      if (previewBadgeStatus) previewBadgeStatus.textContent = label || 'Preset Video';
+    } else {
+      currentPreviewObjectUrl = URL.createObjectURL(fileOrUrl);
+      if (adminPreviewVideo) {
+        adminPreviewVideo.src = currentPreviewObjectUrl;
+        adminPreviewVideo.load();
+        adminPreviewVideo.play().catch(() => {});
+      }
+      if (previewBadgeStatus) previewBadgeStatus.textContent = label || ('Custom: ' + fileOrUrl.name);
+    }
+  }
+
+  // --- Preset Pickers ---
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      stagedCustomVideoBlob = null;
+      if (adminDropzone) adminDropzone.classList.remove('has-staged-video');
+      if (adminVideoFile) adminVideoFile.value = '';
+      presetBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activePresetSrc = btn.getAttribute('data-src');
+
+      setVideoPreview(activePresetSrc, 'Preset: ' + btn.textContent.trim());
+
+      if (dropzoneMainText) dropzoneMainText.textContent = 'Tap or drop video file';
+      if (dropzoneSubText) dropzoneSubText.textContent = 'MP4 (H.264/AAC), WebM supported · Max 50MB';
+      showToast(`Selected preset: ${btn.textContent.trim()}`, 'info');
+    });
+  });
+
+  // --- Video File Upload (Drag & Drop or File Picker) ---
+  async function handleVideoFiles(fileList) {
+    if (!fileList || fileList.length === 0) return;
+    const file = fileList[0];
+
+    // Ensure media mode is set to video
+    setMediaMode('video');
+
+    showToast(`Checking video "${file.name}"...`, 'info');
+    if (dropzoneMainText) dropzoneMainText.textContent = '⏳ Validating: ' + file.name;
+
+    const validation = await validateVideoFile(file);
+    if (!validation.valid) {
+      stagedCustomVideoBlob = null;
+      cleanupVideoPreview();
+      if (adminVideoFile) adminVideoFile.value = '';
+      if (adminDropzone) adminDropzone.classList.remove('has-staged-video');
+      if (dropzoneMainText) dropzoneMainText.textContent = 'Tap or drop video file';
+      if (dropzoneSubText) dropzoneSubText.textContent = 'MP4 (H.264/AAC), WebM supported · Max 50MB';
+      showToast(validation.error || 'Video validation failed.', 'error');
+      return;
+    }
+
+    stagedCustomVideoBlob = file;
+    activePresetSrc = '';
+    presetBtns.forEach(b => b.classList.remove('active'));
+
+    if (adminDropzone) adminDropzone.classList.add('has-staged-video');
+    setVideoPreview(file, 'Custom: ' + file.name);
+
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+    const durStr = validation.duration ? `${Math.round(validation.duration)}s` : '';
+    if (dropzoneMainText) dropzoneMainText.textContent = '✅ Ready: ' + file.name;
+    if (dropzoneSubText) dropzoneSubText.textContent = `${sizeMb} MB ${durStr ? '· ' + durStr : ''} · Tap "${editingReelId ? 'Save Changes' : 'Add Reel to Feed'}" to upload`;
+
+    showToast(`✓ Video "${file.name}" (${sizeMb} MB) verified! Ready to save.`, 'success');
+  }
+
+  if (adminVideoFile) {
+    adminVideoFile.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleVideoFiles(e.target.files);
+      }
+    });
+  }
+
+  if (adminDropzone) {
+    adminDropzone.addEventListener('click', (e) => {
+      if (e.target === adminVideoFile) return;
+      if (adminVideoFile) {
+        adminVideoFile.value = '';
+        adminVideoFile.click();
+      }
+    });
+
+    adminDropzone.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && adminVideoFile) {
+        e.preventDefault();
+        adminVideoFile.value = '';
+        adminVideoFile.click();
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach(evt => {
+      adminDropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        adminDropzone.style.borderColor = '#ff3366';
+      });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      adminDropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        adminDropzone.style.borderColor = '';
+      });
+    });
+    adminDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      adminDropzone.style.borderColor = '';
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleVideoFiles(e.dataTransfer.files);
+      }
+    });
+  }
+
+  // --- Instagram-Style Glory Likes Manager ---
+  function getGloryLikes() {
+    try {
+      const raw = localStorage.getItem('cinema_glory_likes');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    } catch (e) {}
+    return {};
+  }
+
+  function saveGloryLikes(likesMap) {
+    localStorage.setItem('cinema_glory_likes', JSON.stringify(likesMap));
+    localStorage.setItem('cinema_glory_likes_time', Date.now().toString());
+  }
+
+  async function toggleGloryLike(reelId, explicitState = null) {
+    if (!reelId) return;
+    const likesMap = getGloryLikes();
+    const currentState = Boolean(likesMap[reelId]?.liked);
+    const newState = (explicitState !== null) ? Boolean(explicitState) : !currentState;
+
+    if (currentState === newState && explicitState !== null) return;
+
+    if (newState) {
+      likesMap[reelId] = {
+        liked: true,
+        timestamp: Date.now(),
+        user: 'Glory'
+      };
+    } else {
+      delete likesMap[reelId];
+    }
+
+    saveGloryLikes(likesMap);
+
+    // Update UI on feed
+    updateFeedLikeButtonUI(reelId, newState);
+
+    // Update admin if viewing
+    renderAdminReelsManager();
+    updateAdminMetrics();
+
+    showToast(newState ? '❤️ Glory liked this reel!' : '🤍 Removed like', 'info');
+
+    // Cloud sync to Supabase
+    const { url: savedUrl, key: savedKey } = getValidSupabaseConfig();
+    const likeId = 'like_' + reelId;
+
+    if (newState) {
+      // 1. Try glory_likes table
+      try {
+        await fetch(`${savedUrl}/rest/v1/glory_likes`, {
+          method: 'POST',
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify({
+            id: likeId,
+            reel_id: reelId,
+            user_name: 'Glory',
+            created_at: new Date().toISOString()
+          })
+        });
+      } catch (e) {}
+
+      // 2. Also record in glory_replies with [GLORY_LIKED] tag for universal cloud sync
+      try {
+        const reels = getReels();
+        const reel = reels.find(r => r.id === reelId);
+        const idx = reels.findIndex(r => r.id === reelId) + 1;
+        await fetch(`${savedUrl}/rest/v1/glory_replies?on_conflict=id`, {
+          method: 'POST',
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify({
+            id: likeId,
+            reel_id: reelId,
+            reel_index: idx || 1,
+            reel_title: reel?.title || 'Reel',
+            reel_text: reel?.text || '',
+            reply_text: '❤️ [GLORY_LIKED]',
+            sender: 'Glory'
+          })
+        });
+      } catch (e) {}
+    } else {
+      // Delete like from cloud
+      try {
+        await fetch(`${savedUrl}/rest/v1/glory_likes?id=eq.${likeId}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`
+          }
+        });
+      } catch (e) {}
+      try {
+        await fetch(`${savedUrl}/rest/v1/glory_replies?id=eq.${likeId}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`
+          }
+        });
+      } catch (e) {}
+    }
+  }
+
+  function updateFeedLikeButtonUI(reelId, isLiked) {
+    const btn = document.querySelector(`.ig-like-btn[data-reel-id="${reelId}"]`);
+    if (!btn) return;
+
+    btn.classList.toggle('liked', isLiked);
+    const countSpan = btn.querySelector('.ig-like-count');
+    if (countSpan) {
+      countSpan.textContent = isLiked ? '1' : 'Like';
+    }
+    const svg = btn.querySelector('svg');
+    if (svg) {
+      svg.setAttribute('fill', isLiked ? '#ff3040' : 'none');
+      svg.setAttribute('stroke-width', isLiked ? '0' : '2');
+      svg.innerHTML = isLiked 
+        ? '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>' 
+        : '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>';
+    }
+  }
+
+  function spawnDoubleTapHeart(container) {
+    if (!container) return;
+    const heart = document.createElement('div');
+    heart.className = 'ig-double-tap-heart';
+    heart.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+    container.appendChild(heart);
+    setTimeout(() => heart.remove(), 850);
+  }
+
+  // --- Instagram-Style Comments Drawer ---
+  let activeCommentReelId = null;
+
+  function openCommentsDrawer(reelId, reelTitle, reelIndex) {
+    activeCommentReelId = reelId;
+    const drawer = document.getElementById('reelCommentsDrawer');
+    if (!drawer) return;
+
+    drawer.classList.remove('hidden');
+    renderCommentsList(reelId);
+
+    const input = document.getElementById('igComposerInput');
+    const avatarEl = document.getElementById('igComposerAvatar');
+    // Only in dedicated Yash feed view (isYashViewer === true) does composer default to Yash. In Glory view it defaults to Glory.
+    const isYashMode = (isYashViewer === true);
+
+    if (avatarEl) {
+      if (isYashMode) {
+        avatarEl.textContent = 'Y';
+        avatarEl.classList.add('is-yash');
+        if (input) input.placeholder = 'Add a comment as Yash for Glory... 👑❤️';
+      } else {
+        avatarEl.textContent = 'G';
+        avatarEl.classList.remove('is-yash');
+        if (input) input.placeholder = 'Add a comment for Yash... ❤️';
+      }
+    }
+
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 250);
+    }
+  }
+
+  function closeCommentsDrawer() {
+    activeCommentReelId = null;
+    const drawer = document.getElementById('reelCommentsDrawer');
+    if (drawer) drawer.classList.add('hidden');
+    // If not actively viewing feed as Yash, ensure isYashViewer is reset
+    const feedPill = document.getElementById('feedBadgePill');
+    if (feedPill && !feedPill.classList.contains('is-yash')) {
+      isYashViewer = false;
+    }
+  }
+
+  function renderCommentsList(reelId) {
+    const listEl = document.getElementById('igCommentsList');
+    const pillEl = document.getElementById('igCommentsCountPill');
+    if (!listEl) return;
+
+    const allReplies = getGloryReplies();
+    const comments = allReplies.filter(r => (r.reelId === reelId || (!r.reelId && r.reelIndex)) && !r.text.includes('[GLORY_LIKED]') && !r.text.includes('[LIKE]'));
+
+    if (pillEl) pillEl.textContent = comments.length;
+
+    if (comments.length === 0) {
+      listEl.innerHTML = `
+        <div class="ig-comments-empty">
+          <div style="font-size: 2rem; margin-bottom: 8px;">💬</div>
+          <div>No comments yet.</div>
+          <div style="font-size: 0.8rem; margin-top: 4px; color: rgba(255,255,255,0.4);">Start the conversation between Yash & Glory ❤️</div>
+        </div>
+      `;
+      return;
+    }
+
+    listEl.innerHTML = '';
+    comments.forEach(c => {
+      const senderVal = (c.sender || '').trim().toLowerCase();
+      const textVal = (c.text || '').trim().toLowerCase();
+
+      // Accurate attribution of comment author
+      let isYash = false;
+      if (senderVal === 'yash' || senderVal === 'admin') {
+        isYash = true;
+      } else if (senderVal === 'glory') {
+        isYash = false;
+      } else if (textVal.includes('as glory') || textVal.includes('from glory') || textVal === 'glory') {
+        isYash = false;
+      } else if (textVal.includes('as yash') || textVal.includes('from yash') || textVal.startsWith('[yash]') || textVal.includes('this is yash')) {
+        isYash = true;
+      } else {
+        isYash = senderVal.includes('yash');
+      }
+
+      // Explicit overrides for test phrases
+      if (textVal === 'as glory' || textVal === 'new as glory' || textVal.includes('as glory')) {
+        isYash = false;
+      }
+      if (textVal === 'as yash' || textVal === 'new as yash' || textVal.includes('as yash')) {
+        isYash = true;
+      }
+
+      const timeStr = formatRelativeTime(c.createdAt || Date.now());
+      const authorText = isYash ? 'Yash 👑' : 'Glory ❤️';
+
+      const item = document.createElement('div');
+      item.className = `ig-comment-item ${isYash ? 'is-yash' : ''}`;
+      item.innerHTML = `
+        <div class="ig-comment-avatar ${isYash ? 'is-yash' : ''}">${isYash ? 'Y' : 'G'}</div>
+        <div class="ig-comment-body">
+          <div class="ig-comment-header-row">
+            <span class="ig-comment-author ${isYash ? 'is-yash' : ''}">
+              ${authorText}
+              ${isYash ? '<span class="yash-author-badge">ADMIN</span>' : ''}
+            </span>
+            <span class="ig-comment-time">${timeStr}</span>
+          </div>
+          <div class="ig-comment-text">${escapeHtml(c.text)}</div>
+        </div>
+      `;
+      listEl.appendChild(item);
+    });
+
+    listEl.scrollTop = listEl.scrollHeight;
+  }
+
+  function formatRelativeTime(timestamp) {
+    const diff = Math.floor((Date.now() - Number(timestamp)) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  }
+
+  // Bind Instagram comments drawer listeners
+  const igCommentsComposer = document.getElementById('igCommentsComposer');
+  const igComposerAvatar = document.getElementById('igComposerAvatar');
+
+  // Tap avatar to toggle between commenting as Yash 👑 and Glory ❤️
+  if (igComposerAvatar) {
+    igComposerAvatar.addEventListener('click', () => {
+      const input = document.getElementById('igComposerInput');
+      if (igComposerAvatar.textContent === 'Y') {
+        igComposerAvatar.textContent = 'G';
+        igComposerAvatar.classList.remove('is-yash');
+        if (input) input.placeholder = 'Add a comment for Yash... ❤️';
+        showToast('Now commenting as Glory ❤️', 'info');
+      } else {
+        igComposerAvatar.textContent = 'Y';
+        igComposerAvatar.classList.add('is-yash');
+        if (input) input.placeholder = 'Add a comment as Yash for Glory... 👑❤️';
+        showToast('Now commenting as Yash 👑', 'info');
+      }
+    });
+  }
+
+  if (igCommentsComposer) {
+    igCommentsComposer.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('igComposerInput');
+      const text = input ? input.value.trim() : '';
+      if (!text || !activeCommentReelId) return;
+
+      const avatarEl = document.getElementById('igComposerAvatar');
+      const isYash = avatarEl ? (avatarEl.textContent === 'Y') : (isYashViewer === true);
+      const sender = isYash ? 'Yash' : 'Glory';
+
+      const reels = getReels();
+      const reel = reels.find(r => r.id === activeCommentReelId);
+      const reelIndex = reels.findIndex(r => r.id === activeCommentReelId) + 1;
+
+      const repObj = {
+        id: 'reply_' + Date.now(),
+        text: text,
+        reelId: activeCommentReelId,
+        reelIndex: reelIndex || 1,
+        reelTitle: reel ? (reel.title || `Reel #${reelIndex}`) : 'Reel',
+        reelText: reel ? (reel.text || '') : '',
+        sender: sender,
+        createdAt: Date.now()
+      };
+
+      const replies = getGloryReplies();
+      replies.unshift(repObj);
+      saveGloryReplies(replies);
+
+      input.value = '';
+
+      renderCommentsList(activeCommentReelId);
+
+      const countEl = document.querySelector(`.ig-comment-btn[data-reel-id="${activeCommentReelId}"] .ig-comments-count`);
+      if (countEl) {
+        const count = replies.filter(r => (r.reelId === activeCommentReelId || (!r.reelId && r.reelIndex === reelIndex)) && !r.text.includes('[GLORY_LIKED]') && !r.text.includes('[LIKE]')).length;
+        countEl.textContent = count > 0 ? count : 'Comment';
+      }
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('glory_replies').insert([{
+            id: repObj.id,
+            reel_id: repObj.reelId,
+            reel_index: repObj.reelIndex,
+            reel_title: repObj.reelTitle,
+            reel_text: repObj.reelText,
+            reply_text: repObj.text,
+            sender: repObj.sender
+          }]);
+        } catch (err) {
+          console.warn('Supabase comment insert warning:', err);
+        }
+      }
+
+      showToast(sender === 'Yash' ? '👑 Comment posted as Yash! Visible to Glory.' : '💬 Comment sent to Yash! ❤️', 'success');
+      renderAdminReplies();
+      renderAdminReelsManager();
+      updateAdminMetrics();
+    });
+  }
+
+  const igCommentsCloseBtn = document.getElementById('igCommentsCloseBtn');
+  if (igCommentsCloseBtn) igCommentsCloseBtn.onclick = closeCommentsDrawer;
+
+  const igCommentsBackdrop = document.getElementById('igCommentsBackdrop');
+  if (igCommentsBackdrop) igCommentsBackdrop.onclick = closeCommentsDrawer;
+
+  function openAdminComments(reelId, reelTitle, reelIndex) {
+    isYashViewer = true;
+    openCommentsDrawer(reelId, reelTitle, reelIndex);
+  }
+  window.__openAdminComments = openAdminComments;
+
+  // --- Admin Reels Lineup Manager (N Reels) ---
+  function renderAdminReelsManager() {
+    if (!adminReelsList) return;
+    const reels = getReels();
+    const likesMap = getGloryLikes();
+    const allReplies = getGloryReplies();
+
+    if (adminReelsCount) {
+      adminReelsCount.textContent = `${reels.length} Reel${reels.length !== 1 ? 's' : ''}`;
+    }
+
+    adminReelsList.innerHTML = '';
+
+    reels.forEach((reel, index) => {
+      const isEditing = editingReelId === reel.id;
+      const item = document.createElement('div');
+      item.className = `admin-reel-item ${isEditing ? 'is-editing' : ''}`;
+
+      const timeStr = new Date(reel.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const isVideo = reel.mediaType === 'video';
+      const reelText = reel.text || '';
+
+      // Instagram-style like indicator
+      const isLiked = Boolean(likesMap[reel.id]?.liked);
+      const likeObj = likesMap[reel.id];
+      const likeTimeAgo = isLiked && likeObj?.timestamp ? formatRelativeTime(likeObj.timestamp) : '';
+
+      // Comments count from Glory
+      const commentsCount = allReplies.filter(r => (r.reelId === reel.id || String(r.reelIndex) === String(index + 1)) && !r.text.includes('[GLORY_LIKED]') && !r.text.includes('[LIKE]')).length;
+
+      item.innerHTML = `
+        <div class="admin-reel-item-info">
+          <div class="admin-reel-item-title-row">
+            <span class="admin-reel-num-badge">#${index + 1}</span>
+            <span class="admin-reel-item-title">${escapeHtml(reel.title || 'Reel #' + (index + 1))}</span>
+          </div>
+          <div class="admin-reel-item-meta">
+            <span class="admin-reel-type-badge ${isVideo ? 'type-video' : 'type-text'}">${isVideo ? '🎬 Video' : '✍️ Text-Only'}</span>
+            <span>· "${escapeHtml(reelText.length > 28 ? reelText.substring(0, 28) + '...' : reelText)}" · ${timeStr}</span>
+          </div>
+          <div class="admin-reel-engagement-row" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:4px;">
+            ${isLiked ? `
+              <div class="admin-reel-ig-liked-by">
+                <span class="ig-heart-mini">❤️</span>
+                <span>Liked by <strong>Glory</strong></span>
+                ${likeTimeAgo ? `<span class="like-time">· ${likeTimeAgo}</span>` : ''}
+              </div>
+            ` : `
+              <div class="admin-reel-not-liked">
+                <span>🤍 Not yet liked by Glory</span>
+              </div>
+            `}
+            ${commentsCount > 0 ? `
+              <div class="admin-reel-comments-badge">
+                <span>💬 ${commentsCount} comment${commentsCount !== 1 ? 's' : ''} from Glory</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+        <div class="admin-reel-actions">
+          <button type="button" class="admin-reel-action-btn admin-reel-move-btn" title="Move Up in Lineup" ${index === 0 ? 'disabled' : ''} onclick="if(window.__moveReelUp){window.__moveReelUp('${reel.id}');}">
+            <span>▲</span>
+          </button>
+          <button type="button" class="admin-reel-action-btn admin-reel-move-btn" title="Move Down in Lineup" ${index === reels.length - 1 ? 'disabled' : ''} onclick="if(window.__moveReelDown){window.__moveReelDown('${reel.id}');}">
+            <span>▼</span>
+          </button>
+          <button type="button" class="admin-reel-action-btn admin-reel-comments-btn" title="View & Reply as Yash" onclick="if(window.__openAdminComments){window.__openAdminComments('${reel.id}', '${escapeHtml(reel.title || '')}', ${index + 1});}">
+            <span>💬 ${commentsCount}</span>
+          </button>
+          <button type="button" class="admin-reel-action-btn admin-reel-edit-btn" onclick="if(window.__startEditingReel){window.__startEditingReel('${reel.id}');}">
+            <span>✏️ Edit</span>
+          </button>
+          <button type="button" class="admin-reel-action-btn admin-reel-delete-btn" onclick="if(window.__deleteReel){window.__deleteReel('${reel.id}');}">
+            <span>🗑️ Delete</span>
+          </button>
+        </div>
+      `;
+
+      // Also hook programmatically
+      const editBtn = item.querySelector('.admin-reel-edit-btn');
+      if (editBtn) {
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          startEditingReel(reel.id);
+        };
+      }
+
+      const delBtn = item.querySelector('.admin-reel-delete-btn');
+      if (delBtn) {
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteReel(reel.id);
+        };
+      }
+
+      adminReelsList.appendChild(item);
+    });
+  }
+
+  // --- Glory Direct Replies Management ---
+  function getGloryReplies() {
+    try {
+      const raw = localStorage.getItem('cinema_glory_replies');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return parsed.map(r => {
+            const lowerText = (r.text || '').toLowerCase().trim();
+            if (lowerText === 'as glory' || lowerText === 'new as glory' || lowerText.includes('as glory')) {
+              r.sender = 'Glory';
+            } else if (lowerText === 'as yash' || lowerText === 'new as yash' || lowerText.includes('as yash') || lowerText.includes('from yash')) {
+              r.sender = 'Yash';
+            } else if (!r.sender) {
+              if (lowerText.includes('[yash]') || lowerText.includes('admin')) {
+                r.sender = 'Yash';
+              } else {
+                r.sender = 'Glory';
+              }
+            }
+            return r;
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading replies:', e);
+    }
+    return [];
+  }
+
+  function saveGloryReplies(replies) {
+    localStorage.setItem('cinema_glory_replies', JSON.stringify(replies));
+    localStorage.setItem('cinema_glory_replies_time', Date.now().toString());
+  }
+
+  function renderAdminReplies() {
+    if (!adminRepliesList) return;
+    const replies = getGloryReplies();
+    if (adminRepliesCount) {
+      adminRepliesCount.textContent = `${replies.length} Message${replies.length !== 1 ? 's' : ''}`;
+    }
+
+    if (replies.length === 0) {
+      adminRepliesList.innerHTML = `
+        <div class="admin-replies-empty">
+          <span style="font-weight:600; font-size:0.86rem; color:#fff;">No replies from Glory yet.</span>
+          <p style="margin:4px 0 0; font-size:0.76rem; color:rgba(255,255,255,0.4);">When Glory sends a reply from her reel feed, it will appear here in real time.</p>
+        </div>
+      `;
+      return;
+    }
+
+    adminRepliesList.innerHTML = '';
+    replies.forEach((rep) => {
+      const card = document.createElement('div');
+      card.className = 'admin-reply-card';
+      const timeStr = new Date(rep.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      card.innerHTML = `
+        <div class="admin-reply-content">
+          <div class="admin-reply-reel-badge-row">
+            <div class="admin-reply-reel-pill">
+              <span class="reel-pill-icon">🎬</span>
+              <span class="reel-pill-num">Replied on Reel #${rep.reelIndex}</span>
+              <span class="reel-pill-divider">·</span>
+              <span class="reel-pill-title">${escapeHtml(rep.reelTitle || 'Exclusive Reel')}</span>
+            </div>
+            <span class="admin-reply-time">${timeStr}</span>
+          </div>
+
+          ${rep.reelText ? `
+          <div class="admin-reply-reel-quote">
+            <span class="quote-tag">On Reel Quote:</span>
+            <span class="quote-text">“${escapeHtml(rep.reelText.length > 50 ? rep.reelText.slice(0, 50) + '...' : rep.reelText)}”</span>
+          </div>
+          ` : ''}
+
+          <div class="admin-reply-body">
+            <span class="admin-reply-from-badge ${((rep.sender || '').toLowerCase().includes('yash') || (rep.sender || '').toLowerCase().includes('admin')) ? 'is-yash' : ''}">
+              ${((rep.sender || '').toLowerCase().includes('yash') || (rep.sender || '').toLowerCase().includes('admin')) ? '👑 Yash (Admin) posted:' : '❤️ Glory replied:'}
+            </span>
+            <div class="admin-reply-text">“${escapeHtml(rep.text)}”</div>
+          </div>
+        </div>
+        <button type="button" class="admin-reply-delete-btn" title="Delete message" data-id="${rep.id}">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      `;
+
+      const delBtn = card.querySelector('.admin-reply-delete-btn');
+      if (delBtn) {
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteGloryReply(rep.id);
+        };
+      }
+
+      adminRepliesList.appendChild(card);
+    });
+  }
+
+  function deleteGloryReply(id) {
+    let replies = getGloryReplies();
+    replies = replies.filter(r => r.id !== id);
+    saveGloryReplies(replies);
+    renderAdminReplies();
+    showToast('Reply removed.', 'info');
+  }
+
+  function clearAllGloryReplies() {
+    saveGloryReplies([]);
+    renderAdminReplies();
+    showToast('Glory inbox cleared.', 'info');
+  }
+
+  if (adminClearRepliesBtn) {
+    adminClearRepliesBtn.onclick = clearAllGloryReplies;
+  }
+
+  // --- Device & User-Agent Descriptor for Audit Logs ---
+  function getDeviceDescriptor() {
+    const ua = navigator.userAgent || '';
+    let os = 'Device';
+    if (/iPhone/i.test(ua)) os = 'iPhone iOS';
+    else if (/iPad/i.test(ua)) os = 'iPad iOS';
+    else if (/Android/i.test(ua)) os = 'Android Mobile';
+    else if (/Macintosh/i.test(ua)) os = 'Mac OS';
+    else if (/Windows/i.test(ua)) os = 'Windows PC';
+    else if (/Linux/i.test(ua)) os = 'Linux';
+
+    let browser = 'Browser';
+    if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) browser = 'Chrome';
+    else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+    else if (/Edg/i.test(ua)) browser = 'Edge';
+    else if (/Firefox/i.test(ua)) browser = 'Firefox';
+
+    return `${os} · ${browser}`;
+  }
+
+  function formatRelativeTime(timestamp) {
+    if (!timestamp) return 'recently';
+    const diff = Math.floor((Date.now() - timestamp) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  }
+
+  // --- Glory Login Audits & History ---
+  function getGloryLogins() {
+    try {
+      const raw = localStorage.getItem('cinema_glory_logins');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Error reading logins:', e);
+    }
+    return [];
+  }
+
+  function saveGloryLogins(logins) {
+    localStorage.setItem('cinema_glory_logins', JSON.stringify(logins));
+    localStorage.setItem('cinema_glory_logins_time', Date.now().toString());
+  }
+
+  async function recordGloryLogin(username = 'glory') {
+    const newLogin = {
+      id: 'login_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      username: username,
+      device_info: getDeviceDescriptor(),
+      logged_in_at: new Date().toISOString(),
+      timestamp: Date.now()
+    };
+
+    let logins = getGloryLogins();
+    logins.unshift(newLogin);
+    if (logins.length > 50) logins = logins.slice(0, 50);
+    saveGloryLogins(logins);
+
+    // Sync to Supabase in background if configured
+    if (supabaseClient) {
+      try {
+        await supabaseClient.from('glory_logins').insert([
+          {
+            id: newLogin.id,
+            username: newLogin.username,
+            device_info: newLogin.device_info,
+            logged_in_at: newLogin.logged_in_at
+          }
+        ]);
+      } catch (err) {
+        console.warn('Supabase login audit insert:', err);
+      }
+    }
+  }
+
+  function renderGloryLogins() {
+    const logins = getGloryLogins();
+    if (adminLoginsCount) {
+      adminLoginsCount.textContent = `${logins.length} Session${logins.length !== 1 ? 's' : ''}`;
+    }
+
+    if (adminLastLoginTime && adminLastLoginDevice) {
+      if (logins.length > 0) {
+        const last = logins[0];
+        const dateObj = new Date(last.timestamp || last.logged_in_at);
+        const rel = formatRelativeTime(last.timestamp || Date.parse(last.logged_in_at));
+        adminLastLoginTime.textContent = `${dateObj.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} at ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${rel})`;
+        adminLastLoginDevice.textContent = `Device: ${last.device_info || 'Mobile/Web'}`;
+      } else {
+        adminLastLoginTime.textContent = 'Awaiting first session';
+        adminLastLoginDevice.textContent = 'No recorded activity yet';
+      }
+    }
+
+    if (!adminLoginsList) return;
+
+    if (logins.length === 0) {
+      adminLoginsList.innerHTML = `
+        <div class="admin-replies-empty">
+          <span style="font-weight:600; font-size:0.86rem; color:#fff;">No Glory logins recorded yet.</span>
+          <p style="margin:4px 0 0; font-size:0.76rem; color:rgba(255,255,255,0.4);">Every time Glory logs into her feed, the exact date, time, and device will be cataloged here.</p>
+        </div>
+      `;
+      return;
+    }
+
+    adminLoginsList.innerHTML = '';
+    logins.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'admin-login-item-card';
+      const d = new Date(item.timestamp || item.logged_in_at);
+      const dateFormatted = d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+      const timeFormatted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const relTime = formatRelativeTime(item.timestamp || Date.parse(item.logged_in_at));
+
+      card.innerHTML = `
+        <div class="login-item-left">
+          <div class="login-item-icon">✨</div>
+          <div class="login-item-body">
+            <span class="login-item-user">Glory Signed In</span>
+            <span class="login-item-time">${dateFormatted} · ${timeFormatted}</span>
+          </div>
+        </div>
+        <div class="login-item-right">
+          <span class="login-item-rel">${relTime}</span>
+          <span class="login-item-device">${escapeHtml(item.device_info || 'Web App')}</span>
+        </div>
+      `;
+      adminLoginsList.appendChild(card);
+    });
+  }
+
+  function clearAllGloryLogins() {
+    saveGloryLogins([]);
+    renderGloryLogins();
+    updateAdminMetrics();
+    showToast('Glory login history cleared.', 'info');
+  }
+
+  if (adminClearLoginsBtn) {
+    adminClearLoginsBtn.onclick = clearAllGloryLogins;
+  }
+
+  // --- Real-Time Studio Metric Cards ---
+  function updateAdminMetrics() {
+    const reels = getReels();
+    const allReplies = getGloryReplies();
+    const realReplies = allReplies.filter(r => !r.text.includes('[GLORY_LIKED]') && !r.text.includes('[LIKE]'));
+    const logins = getGloryLogins();
+    const likesMap = getGloryLikes();
+    const likedCount = reels.filter(r => Boolean(likesMap[r.id]?.liked)).length;
+
+    if (adminStatReels) adminStatReels.textContent = reels.length;
+    if (adminStatLikes) adminStatLikes.textContent = likedCount;
+    if (adminStatReplies) adminStatReplies.textContent = realReplies.length;
+    if (adminStatLogins) adminStatLogins.textContent = logins.length;
+    if (tabBadgeReplies) tabBadgeReplies.textContent = realReplies.length;
+    if (tabBadgeLogins) tabBadgeLogins.textContent = logins.length;
+
+    if (adminStatCloud && adminStatCloudLabel) {
+      if (supabaseClient) {
+        adminStatCloud.textContent = 'Active';
+        adminStatCloud.style.color = '#10b981';
+        adminStatCloudLabel.textContent = 'Supabase Cloud';
+      } else {
+        adminStatCloud.textContent = 'Ready';
+        adminStatCloud.style.color = '#fcd5b5';
+        adminStatCloudLabel.textContent = 'Local Cache';
+      }
+    }
+  }
+
+  // --- Studio Tab Navigation ---
+  function switchAdminTab(targetTab) {
+    const tabs = [
+      { id: 'reels', btn: tabNavReels, pane: adminTabPaneReels },
+      { id: 'replies', btn: tabNavReplies, pane: adminTabPaneReplies },
+      { id: 'logins', btn: tabNavLogins, pane: adminTabPaneLogins },
+      { id: 'cloud', btn: tabNavCloud, pane: adminTabPaneCloud }
+    ];
+
+    tabs.forEach(t => {
+      const isTarget = t.id === targetTab;
+      if (t.btn) t.btn.classList.toggle('active', isTarget);
+      if (t.pane) t.pane.classList.toggle('hidden', !isTarget);
+    });
+
+    if (targetTab === 'reels') renderAdminReelsManager();
+    if (targetTab === 'replies') renderAdminReplies();
+    if (targetTab === 'logins') renderGloryLogins();
+    if (targetTab === 'cloud') loadRenderEnvConfig();
+    updateAdminMetrics();
+  }
+
+  if (tabNavReels) tabNavReels.addEventListener('click', () => switchAdminTab('reels'));
+  if (tabNavReplies) tabNavReplies.addEventListener('click', () => switchAdminTab('replies'));
+  if (tabNavLogins) tabNavLogins.addEventListener('click', () => switchAdminTab('logins'));
+  if (tabNavCloud) tabNavCloud.addEventListener('click', () => switchAdminTab('cloud'));
+
+  // --- Supabase Cloud & Deployment Suite Integration ---
+  let supabaseClient = null;
+
+  function getSupabaseFactory() {
+    if (typeof window !== 'undefined') {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        return window.supabase.createClient;
+      }
+      if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
+        return supabase.createClient;
+      }
+    }
+    return null;
+  }
+
+  const DEFAULT_SUPABASE_URL = 'https://vkzzdnepmwhsnzmeozxr.supabase.co';
+  const DEFAULT_SUPABASE_KEY = 'sb_publishable_27dH6hm79SXgqxz8wF25nQ_1IbAhX6s';
+
+  function getValidSupabaseConfig() {
+    let url = (localStorage.getItem('supabase_project_url') || DEFAULT_SUPABASE_URL).trim()
+      .replace(/^['"]|['"]$/g, '').replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+    let key = (localStorage.getItem('supabase_anon_key') || DEFAULT_SUPABASE_KEY).trim()
+      .replace(/^['"]|['"]$/g, '');
+
+    const isPlaceholderKey = !key || key.length < 20 || key.includes('your-anon-key') || key === 'anon key' || key === 'demo';
+    if (isPlaceholderKey) {
+      key = DEFAULT_SUPABASE_KEY;
+    }
+    const isPlaceholderUrl = !url || !url.startsWith('http') || url.includes('your-project');
+    if (isPlaceholderUrl) {
+      url = DEFAULT_SUPABASE_URL;
+    }
+    return { url, key };
+  }
+
+  function initSupabase(overrideBadge) {
+    const { url: savedUrl, key: savedKey } = getValidSupabaseConfig();
+
+    if (supabaseUrlInput && !supabaseUrlInput.value) supabaseUrlInput.value = savedUrl;
+    if (supabaseKeyInput && !supabaseKeyInput.value) supabaseKeyInput.value = savedKey;
+
+    const createClientFn = getSupabaseFactory();
+
+    if (savedUrl && savedKey) {
+      if (createClientFn) {
+        try {
+          supabaseClient = createClientFn(savedUrl, savedKey);
+          if (supabaseStatusBadge) {
+            supabaseStatusBadge.textContent = overrideBadge || 'Cloud Connected';
+            supabaseStatusBadge.style.color = '#10b981';
+          }
+          updateAdminMetrics();
+          return true;
+        } catch (err) {
+          console.warn('Supabase SDK initialization warning:', err);
+        }
+      }
+
+      // REST API fallback client if SDK script is blocked or delayed
+      supabaseClient = {
+        from: (tableName) => {
+          const tableUrl = `${savedUrl}/rest/v1/${tableName}`;
+          const headers = {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`
+          };
+          return {
+            select: (cols = '*') => {
+              let queryUrl = `${tableUrl}?select=${encodeURIComponent(cols)}`;
+              const builder = {
+                order: (col, { ascending = true } = {}) => {
+                  queryUrl += `&order=${encodeURIComponent(col)}.${ascending ? 'asc' : 'desc'}`;
+                  return builder;
+                },
+                then: (resolve, reject) => {
+                  return fetch(queryUrl, { headers })
+                    .then(res => {
+                      if (!res.ok) return res.text().then(t => { throw new Error(`HTTP ${res.status}: ${t}`); });
+                      return res.json();
+                    })
+                    .then(data => resolve({ data, error: null }))
+                    .catch(err => resolve({ data: null, error: err }));
+                }
+              };
+              return builder;
+            },
+            insert: async (rows) => {
+              try {
+                const res = await fetch(tableUrl, {
+                  method: 'POST',
+                  headers: {
+                    ...headers,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                  },
+                  body: JSON.stringify(rows)
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+                return { data: null, error: null };
+              } catch (err) {
+                return { data: null, error: err };
+              }
+            },
+            upsert: async (row) => {
+              try {
+                const res = await fetch(`${tableUrl}?on_conflict=id`, {
+                  method: 'POST',
+                  headers: {
+                    ...headers,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'resolution=merge-duplicates'
+                  },
+                  body: JSON.stringify(row)
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+                return { data: null, error: null };
+              } catch (err) {
+                return { data: null, error: err };
+              }
+            },
+            delete: () => ({
+              eq: async (col, val) => {
+                try {
+                  const res = await fetch(`${tableUrl}?${encodeURIComponent(col)}=eq.${encodeURIComponent(val)}`, {
+                    method: 'DELETE',
+                    headers
+                  });
+                  return { data: null, error: res.ok ? null : new Error(`HTTP ${res.status}`) };
+                } catch (err) {
+                  return { data: null, error: err };
+                }
+              }
+            })
+          };
+        },
+        storage: {
+          from: (bucketName) => ({
+            upload: async (storagePath, fileBody, options = {}) => {
+              try {
+                const res = await fetch(`${savedUrl}/storage/v1/object/${bucketName}/${storagePath}`, {
+                  method: 'POST',
+                  headers: {
+                    'apikey': savedKey,
+                    'Authorization': `Bearer ${savedKey}`,
+                    'Content-Type': options.contentType || fileBody.type || 'video/mp4',
+                    'x-upsert': 'true'
+                  },
+                  body: fileBody
+                });
+                if (!res.ok) throw new Error(`Storage HTTP ${res.status}: ${await res.text()}`);
+                return { data: { path: storagePath }, error: null };
+              } catch (err) {
+                return { data: null, error: err };
+              }
+            },
+            getPublicUrl: (storagePath) => ({
+              data: { publicUrl: `${savedUrl}/storage/v1/object/public/${bucketName}/${storagePath}` }
+            }),
+            remove: async (paths = []) => {
+              try {
+                const res = await fetch(`${savedUrl}/storage/v1/object/${bucketName}`, {
+                  method: 'DELETE',
+                  headers: {
+                    'apikey': savedKey,
+                    'Authorization': `Bearer ${savedKey}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ prefixes: paths })
+                });
+                return { data: null, error: res.ok ? null : new Error(`HTTP ${res.status}`) };
+              } catch (err) {
+                return { data: null, error: err };
+              }
+            },
+            list: async (path = '', options = {}) => {
+              try {
+                const res = await fetch(`${savedUrl}/storage/v1/object/list/${bucketName}`, {
+                  method: 'POST',
+                  headers: {
+                    'apikey': savedKey,
+                    'Authorization': `Bearer ${savedKey}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ prefix: path, limit: options.limit || 100 })
+                });
+                if (!res.ok) throw new Error(`Storage list HTTP ${res.status}`);
+                const data = await res.json();
+                return { data, error: null };
+              } catch (err) {
+                return { data: null, error: err };
+              }
+            }
+          })
+        }
+      };
+
+      if (supabaseStatusBadge) {
+        supabaseStatusBadge.textContent = overrideBadge || 'Cloud Connected (REST)';
+        supabaseStatusBadge.style.color = '#10b981';
+      }
+      setupSupabaseRealtime();
+      updateAdminMetrics();
+      return true;
+    }
+
+    if (supabaseStatusBadge) {
+      supabaseStatusBadge.textContent = 'IndexedDB Local Cache Active';
+      supabaseStatusBadge.style.color = '#fcd5b5';
+    }
+    updateAdminMetrics();
+    return false;
+  }
+
+  // --- Fetch Render Cloud Environment Variables (/api/config) ---
+  async function loadRenderEnvConfig() {
+    try {
+      const res = await fetch('/api/config');
+      if (!res.ok) return false;
+      const cfg = await res.json();
+      if (cfg && cfg.supabaseUrl && cfg.supabaseAnonKey) {
+        localStorage.setItem('supabase_project_url', cfg.supabaseUrl);
+        localStorage.setItem('supabase_anon_key', cfg.supabaseAnonKey);
+
+        const banner = document.getElementById('cloudEnvBanner');
+        if (banner) banner.style.display = 'flex';
+
+        initSupabase('Cloud Active (Render Env)');
+        console.log('⚡ Supabase automatically connected via Render Environment Variables!');
+
+        // Run background cloud sync
+        syncAllCloudData({ quiet: true }).then(() => {
+          const currentRole = localStorage.getItem('cinema_session_role');
+          if (currentRole === 'glory') {
+            renderGloryFeed();
+          } else if (currentRole === 'admin') {
+            renderAdminReelsManager();
+            renderAdminReplies();
+            renderGloryLogins();
+          }
+        }).catch(err => {
+          console.warn('Auto cloud sync notice:', err);
+        });
+
+        return true;
+      }
+    } catch (e) {
+      // Standalone static file or offline, ignore
+    }
+    return false;
+  }
+
+  // --- Upload Video to Supabase Storage Bucket ('reels-videos') ---
+  async function uploadVideoToSupabaseStorage(file, reelId) {
+    if (!supabaseClient) initSupabase();
+
+    const { url: savedUrl, key: savedKey } = getValidSupabaseConfig();
+
+    const name = (file.name || '').toLowerCase();
+    const ext = name.endsWith('.webm') ? 'webm' : (name.endsWith('.mov') ? 'mov' : 'mp4');
+    const cleanId = String(reelId).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const storagePath = `reels/${cleanId}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+    const contentType = file.type || (ext === 'webm' ? 'video/webm' : (ext === 'mov' ? 'video/quicktime' : 'video/mp4'));
+
+    let uploadSuccess = false;
+    let lastError = null;
+
+    // 1. Direct XMLHttpRequest with real-time percentage progress
+    try {
+      uploadSuccess = await new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${savedUrl}/storage/v1/object/reels-videos/${storagePath}`, true);
+        xhr.setRequestHeader('apikey', savedKey);
+        xhr.setRequestHeader('Authorization', `Bearer ${savedKey}`);
+        xhr.setRequestHeader('Content-Type', contentType);
+        xhr.setRequestHeader('x-upsert', 'true');
+
+        if (xhr.upload) {
+          xhr.upload.onprogress = (evt) => {
+            if (evt.lengthComputable && evt.total > 0) {
+              const pct = Math.round((evt.loaded / evt.total) * 100);
+              if (adminSaveBtnText) {
+                adminSaveBtnText.textContent = `☁️ Uploading ${pct}%...`;
+              }
+            }
+          };
+        }
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(true);
+          } else {
+            lastError = new Error(`Storage upload HTTP ${xhr.status}: ${xhr.responseText}`);
+            resolve(false);
+          }
+        };
+
+        xhr.onerror = () => {
+          lastError = new Error('Network error during storage upload');
+          resolve(false);
+        };
+
+        xhr.ontimeout = () => {
+          lastError = new Error('Upload timed out');
+          resolve(false);
+        };
+
+        xhr.send(file);
+      });
+    } catch (xhrErr) {
+      lastError = xhrErr;
+      uploadSuccess = false;
+    }
+
+    // 2. Direct REST fetch upload fallback
+    if (!uploadSuccess) {
+      try {
+        const res = await fetch(`${savedUrl}/storage/v1/object/reels-videos/${storagePath}`, {
+          method: 'POST',
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`,
+            'Content-Type': contentType,
+            'x-upsert': 'true'
+          },
+          body: file
+        });
+
+        if (res.ok) {
+          uploadSuccess = true;
+        } else {
+          const errBody = await res.text();
+          lastError = new Error(`Storage upload HTTP ${res.status}: ${errBody}`);
+        }
+      } catch (restErr) {
+        lastError = restErr;
+      }
+    }
+
+    // 3. Supabase JS SDK upload fallback
+    if (!uploadSuccess && supabaseClient && supabaseClient.storage && typeof supabaseClient.storage.from === 'function') {
+      try {
+        const { data, error } = await supabaseClient
+          .storage
+          .from('reels-videos')
+          .upload(storagePath, file, {
+            contentType: contentType,
+            upsert: true
+          });
+        if (!error && data) {
+          uploadSuccess = true;
+        } else if (error) {
+          lastError = error;
+        }
+      } catch (sdkErr) {
+        lastError = sdkErr;
+      }
+    }
+
+    if (!uploadSuccess) {
+      throw new Error((lastError && lastError.message) || 'Storage upload failed.');
+    }
+
+    const publicUrl = `${savedUrl}/storage/v1/object/public/reels-videos/${storagePath}`;
+    return { publicUrl, storagePath };
+  }
+
+  async function saveSupabaseConfig(e) {
+    if (e && e.preventDefault) e.preventDefault();
+
+    const saveBtn = document.getElementById('saveSupabaseSettingsBtn');
+    const saveBtnText = document.getElementById('saveSupabaseBtnText') || saveBtn;
+    const origText = saveBtnText ? saveBtnText.textContent : '💾 Save & Connect Supabase';
+
+    let url = (supabaseUrlInput ? supabaseUrlInput.value.trim() : '');
+    let key = (supabaseKeyInput ? supabaseKeyInput.value.trim() : '');
+
+    // Clean inputs: remove quotes, /rest/v1, remove trailing slashes
+    url = url.replace(/^['"]|['"]$/g, '').replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '').trim();
+    key = key.replace(/^['"]|['"]$/g, '').trim();
+
+    if (!url || !key) {
+      showToast('Please paste both your Supabase Project URL and Anon Public Key.', 'error');
+      if (supabaseUrlInput && !url) supabaseUrlInput.focus();
+      else if (supabaseKeyInput && !key) supabaseKeyInput.focus();
+      return;
+    }
+
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+      if (supabaseUrlInput) supabaseUrlInput.value = url;
+    }
+
+    if (saveBtnText) saveBtnText.textContent = '⏳ Connecting...';
+
+    localStorage.setItem('supabase_project_url', url);
+    localStorage.setItem('supabase_anon_key', key);
+
+    const ok = initSupabase();
+
+    setTimeout(async () => {
+      if (saveBtnText) saveBtnText.textContent = origText;
+      if (ok) {
+        showToast('✓ Connected to Supabase Cloud! Syncing data now...', 'success');
+        await syncAllCloudData();
+      } else {
+        showToast('Connected locally. Please ensure URL & Anon Key are valid.', 'info');
+      }
+    }, 400);
+  }
+
+  async function syncAllCloudData(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const isQuiet = Boolean((e && (e.quiet === true || e === true)) || (arguments.length > 1 && arguments[1] === true));
+
+    const syncBtn = document.getElementById('testSupabaseSyncBtn');
+    const syncBtnText = document.getElementById('syncSupabaseBtnText') || syncBtn;
+    const origText = syncBtnText ? syncBtnText.textContent : '⚡ Sync All Cloud Data Now';
+
+    if (!supabaseClient) {
+      initSupabase();
+    }
+
+    const { url: savedUrl, key: savedKey } = getValidSupabaseConfig();
+
+    if (!isQuiet) {
+      if (syncBtnText) syncBtnText.textContent = '⏳ Syncing Cloud...';
+      showToast('⚡ Syncing with Supabase Cloud...', 'info');
+    }
+
+    try {
+      // 1. Sync Reels from cloud (direct REST first, SDK fallback)
+      let cloudReels = null;
+      let reelErr = null;
+
+      try {
+        const res = await fetch(`${savedUrl}/rest/v1/reels?select=*&order=created_at.asc`, {
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`
+          }
+        });
+        if (res.ok) {
+          cloudReels = await res.json();
+        } else {
+          reelErr = new Error(`HTTP ${res.status}`);
+        }
+      } catch (e) {
+        reelErr = e;
+      }
+
+      if (!cloudReels && supabaseClient && typeof supabaseClient.from === 'function') {
+        try {
+          const sdkRes = await supabaseClient.from('reels').select('*').order('created_at', { ascending: true });
+          if (!sdkRes.error) {
+            cloudReels = sdkRes.data;
+            reelErr = null;
+          }
+        } catch (e) {}
+      }
+
+      if (!reelErr && Array.isArray(cloudReels)) {
+        if (cloudReels.length > 0) {
+          const mapped = cloudReels.map(r => ({
+            id: r.id,
+            title: r.title,
+            text: r.text,
+            mediaType: r.media_type,
+            videoType: r.video_type,
+            videoKey: r.video_key,
+            presetSrc: r.preset_src,
+            videoUrl: r.video_url,
+            createdAt: r.created_at ? new Date(r.created_at).getTime() : Date.now()
+          }));
+          saveReels(mapped);
+          renderAdminReelsManager();
+          await renderGloryFeed();
+        } else {
+          // Cloud has zero reels (all reels deleted in cloud). Keep local in sync with cloud!
+          saveReels([]);
+          renderAdminReelsManager();
+          await renderGloryFeed();
+        }
+      }
+
+      // 2. Sync Glory Replies
+      let cloudReplies = null;
+      try {
+        const repRes = await fetch(`${savedUrl}/rest/v1/glory_replies?select=*&order=created_at.desc`, {
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`
+          }
+        });
+        if (repRes.ok) cloudReplies = await repRes.json();
+      } catch (e) {}
+
+      if (!cloudReplies && supabaseClient && typeof supabaseClient.from === 'function') {
+        try {
+          const sdkRep = await supabaseClient.from('glory_replies').select('*').order('created_at', { ascending: false });
+          if (!sdkRep.error) cloudReplies = sdkRep.data;
+        } catch (e) {}
+      }
+
+      if (cloudReplies && Array.isArray(cloudReplies) && cloudReplies.length > 0) {
+        const cloudLikes = {};
+        const realReplies = [];
+
+        cloudReplies.forEach(cr => {
+          if (cr.reply_text === '❤️ [GLORY_LIKED]' || cr.reply_text === '[LIKE]') {
+            cloudLikes[cr.reel_id] = {
+              liked: true,
+              timestamp: cr.created_at ? new Date(cr.created_at).getTime() : Date.now(),
+              user: 'Glory'
+            };
+          } else {
+            let commSender = 'Glory';
+            const lowerText = (cr.reply_text || '').toLowerCase().trim();
+            if (lowerText === 'as glory' || lowerText === 'new as glory' || lowerText.includes('as glory')) {
+              commSender = 'Glory';
+            } else if (lowerText === 'as yash' || lowerText === 'new as yash' || lowerText.includes('as yash') || lowerText.includes('from yash')) {
+              commSender = 'Yash';
+            } else if (cr.sender) {
+              commSender = (cr.sender.toLowerCase().includes('yash') || cr.sender.toLowerCase().includes('admin')) ? 'Yash' : 'Glory';
+            } else if (cr.reply_text && (cr.reply_text.includes('[YASH]') || cr.reply_text.toLowerCase().includes('from yash'))) {
+              commSender = 'Yash';
+            }
+            realReplies.push({
+              id: cr.id,
+              reelId: cr.reel_id,
+              reelIndex: cr.reel_index,
+              reelTitle: cr.reel_title,
+              reelText: cr.reel_text,
+              text: cr.reply_text,
+              sender: commSender,
+              createdAt: cr.created_at ? new Date(cr.created_at).getTime() : Date.now()
+            });
+          }
+        });
+
+        // Also check dedicated glory_likes table if available
+        try {
+          const lkRes = await fetch(`${savedUrl}/rest/v1/glory_likes?select=*`, {
+            headers: { 'apikey': savedKey, 'Authorization': `Bearer ${savedKey}` }
+          });
+          if (lkRes.ok) {
+            const lkData = await lkRes.json();
+            if (Array.isArray(lkData)) {
+              lkData.forEach(lk => {
+                cloudLikes[lk.reel_id] = {
+                  liked: true,
+                  timestamp: lk.created_at ? new Date(lk.created_at).getTime() : Date.now(),
+                  user: lk.user_name || 'Glory'
+                };
+              });
+            }
+          }
+        } catch (e) {}
+
+        if (Object.keys(cloudLikes).length > 0) {
+          const localLikes = getGloryLikes();
+          saveGloryLikes({ ...localLikes, ...cloudLikes });
+        }
+
+        saveGloryReplies(realReplies);
+        renderAdminReplies();
+      }
+
+      // 3. Sync Glory Logins
+      let cloudLogins = null;
+      try {
+        const logRes = await fetch(`${savedUrl}/rest/v1/glory_logins?select=*&order=logged_in_at.desc`, {
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`
+          }
+        });
+        if (logRes.ok) cloudLogins = await logRes.json();
+      } catch (e) {}
+
+      if (!cloudLogins && supabaseClient && typeof supabaseClient.from === 'function') {
+        try {
+          const sdkLog = await supabaseClient.from('glory_logins').select('*').order('logged_in_at', { ascending: false });
+          if (!sdkLog.error) cloudLogins = sdkLog.data;
+        } catch (e) {}
+      }
+
+      if (cloudLogins && Array.isArray(cloudLogins) && cloudLogins.length > 0) {
+        const mappedLogins = cloudLogins.map(cl => ({
+          id: cl.id,
+          username: cl.username,
+          device_info: cl.device_info,
+          logged_in_at: cl.logged_in_at,
+          timestamp: new Date(cl.logged_in_at).getTime()
+        }));
+        saveGloryLogins(mappedLogins);
+        renderGloryLogins();
+      }
+
+      setupSupabaseRealtime();
+      updateAdminMetrics();
+      if (!isQuiet) {
+        showToast('✓ Cloud Sync Complete! All data secured in Supabase.', 'success');
+      }
+    } catch (err) {
+      console.error('Cloud sync error:', err);
+      if (!isQuiet) {
+        showToast('Cloud notice: ' + (err.message || 'Check database connection'), 'error');
+      }
+    } finally {
+      if (!isQuiet && syncBtnText) syncBtnText.textContent = origText;
+    }
+  }
+
+  // Bind to window for direct HTML inline calls
+  window.__saveSupabaseSettings = saveSupabaseConfig;
+  window.__syncAllCloudData = syncAllCloudData;
+
+  if (saveSupabaseSettingsBtn) {
+    saveSupabaseSettingsBtn.onclick = saveSupabaseConfig;
+  }
+  if (testSupabaseSyncBtn) {
+    testSupabaseSyncBtn.onclick = syncAllCloudData;
+  }
+
+  // --- Realtime Cloud Synchronization ---
+  let supabaseRealtimeReelsChannel = null;
+  let supabaseRealtimeRepliesChannel = null;
+
+  function setupSupabaseRealtime() {
+    if (!supabaseClient || typeof supabaseClient.channel !== 'function') return;
+    try {
+      if (supabaseRealtimeReelsChannel) {
+        supabaseRealtimeReelsChannel.unsubscribe();
+        supabaseRealtimeReelsChannel = null;
+      }
+      supabaseRealtimeReelsChannel = supabaseClient
+        .channel('public:reels')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'reels' }, async (payload) => {
+          console.log('⚡ Realtime reels event received:', payload.eventType);
+          await syncAllCloudData(null, true);
+        })
+        .subscribe();
+
+      if (supabaseRealtimeRepliesChannel) {
+        supabaseRealtimeRepliesChannel.unsubscribe();
+        supabaseRealtimeRepliesChannel = null;
+      }
+      supabaseRealtimeRepliesChannel = supabaseClient
+        .channel('public:glory_replies')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'glory_replies' }, async (payload) => {
+          console.log('⚡ Realtime glory reply received:', payload.new ? payload.new.id : '');
+          await syncAllCloudData(null, true);
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn('Supabase Realtime subscription notice:', err);
+    }
+  }
+
+  // --- Orphaned Storage Cleanup Utility ---
+  async function cleanupOrphanedVideos(executeDelete = false) {
+    if (!supabaseClient || !supabaseClient.storage) {
+      showToast('Supabase client not initialized.', 'error');
+      return { success: false, error: 'No client' };
+    }
+
+    showToast(executeDelete ? '🧹 Cleaning up orphaned videos in Supabase Storage...' : '🔍 Scanning for orphaned videos in Supabase Storage (Audit Mode)...', 'info');
+
+    try {
+      const { data: dbReels, error: dbErr } = await supabaseClient.from('reels').select('video_url');
+      if (dbErr) throw dbErr;
+
+      const activePaths = new Set();
+      (dbReels || []).forEach(r => {
+        if (r.video_url && r.video_url.includes('reels-videos/')) {
+          const parts = r.video_url.split('reels-videos/');
+          if (parts.length > 1) {
+            activePaths.add(decodeURIComponent(parts[1].split('?')[0]));
+          }
+        }
+      });
+
+      const orphaned = [];
+
+      // Scan uploads/
+      const { data: uploadFiles } = await supabaseClient.storage.from('reels-videos').list('uploads', { limit: 100 });
+      if (uploadFiles) {
+        uploadFiles.forEach(f => {
+          const p = `uploads/${f.name}`;
+          if (!activePaths.has(p)) orphaned.push(p);
+        });
+      }
+
+      // Scan reels/ folder
+      const { data: reelFolders } = await supabaseClient.storage.from('reels-videos').list('reels', { limit: 100 });
+      if (reelFolders) {
+        for (const item of reelFolders) {
+          if (!item.name.includes('.')) {
+            const { data: subFiles } = await supabaseClient.storage.from('reels-videos').list(`reels/${item.name}`, { limit: 100 });
+            if (subFiles) {
+              subFiles.forEach(sf => {
+                const subPath = `reels/${item.name}/${sf.name}`;
+                if (!activePaths.has(subPath)) orphaned.push(subPath);
+              });
+            }
+          } else {
+            const directPath = `reels/${item.name}`;
+            if (!activePaths.has(directPath)) orphaned.push(directPath);
+          }
+        }
+      }
+
+      console.log('Orphaned video scan results:', { totalFound: orphaned.length, files: orphaned, executeDelete });
+
+      if (orphaned.length === 0) {
+        showToast('✓ Storage is spotless! No orphaned videos found.', 'success');
+        return { success: true, count: 0, files: [] };
+      }
+
+      if (!executeDelete) {
+        showToast(`🔍 Audit: Found ${orphaned.length} orphaned file(s) in Storage. Run window.__cleanupOrphanedVideos(true) to delete.`, 'info');
+        return { success: true, count: orphaned.length, files: orphaned, dryRun: true };
+      }
+
+      const { error: remErr } = await supabaseClient.storage.from('reels-videos').remove(orphaned);
+      if (remErr) throw remErr;
+
+      showToast(`✓ Removed ${orphaned.length} orphaned video file(s) from Supabase Storage.`, 'success');
+      return { success: true, count: orphaned.length, files: orphaned, dryRun: false };
+    } catch (err) {
+      console.warn('Orphan cleanup notice:', err);
+      showToast('Cleanup notice: ' + (err.message || err), 'error');
+      return { success: false, error: err.message };
+    }
+  }
+  window.__cleanupOrphanedVideos = cleanupOrphanedVideos;
+
+  // --- Dynamic Lineup Position Dropdown Helper ---
+  function updateReelPositionOptions(targetPos = null, reelId = null) {
+    if (!adminReelPositionSelect) return;
+    const reels = getReels();
+    adminReelPositionSelect.innerHTML = '';
+
+    if (reelId) {
+      // Editing existing reel
+      const currIdx = reels.findIndex(r => r.id === reelId);
+      const totalSlots = reels.length;
+      for (let i = 1; i <= totalSlots; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        const isCurrent = (currIdx !== -1 && i === currIdx + 1);
+        opt.textContent = `Position ${i}${isCurrent ? ' (Current Position)' : ''}`;
+        if (targetPos ? i === Number(targetPos) : isCurrent) {
+          opt.selected = true;
+        }
+        adminReelPositionSelect.appendChild(opt);
+      }
+    } else {
+      // Creating new reel
+      const totalSlots = reels.length + 1;
+      for (let i = 1; i <= totalSlots; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        if (i === 1) {
+          opt.textContent = 'Position 1 (Play 1st / Top of Feed)';
+        } else if (i === totalSlots) {
+          opt.textContent = `Position ${i} (Play ${i}th / End of Feed)`;
+        } else {
+          opt.textContent = `Position ${i} (Play ${i}nd/rd/th - Between Reel #${i - 1} & Reel #${i})`;
+        }
+        if (targetPos ? i === Number(targetPos) : i === totalSlots) {
+          opt.selected = true;
+        }
+        adminReelPositionSelect.appendChild(opt);
+      }
+    }
+  }
+
+  // --- Start / Cancel Reel Editing ---
+  function startEditingReel(reelId) {
+    const reels = getReels();
+    const reel = reels.find(r => r.id === reelId);
+    if (!reel) return;
+
+    editingReelId = reelId;
+    const index = reels.findIndex(r => r.id === reelId) + 1;
+
+    // Fill form
+    if (adminTitleInput) adminTitleInput.value = reel.title || '';
+    if (adminMsgInput) adminMsgInput.value = reel.text || '';
+    updateLiveGlassPreview();
+    updateReelPositionOptions(index, reelId);
+
+    // Fill media format
+    if (reel.mediaType === 'textonly') {
+      setMediaMode('textonly');
+      cleanupVideoPreview();
+    } else {
+      setMediaMode('video');
+      stagedCustomVideoBlob = null;
+      if (reel.videoUrl) {
+        activePresetSrc = '';
+        presetBtns.forEach(b => b.classList.remove('active'));
+        setVideoPreview(reel.videoUrl, 'Cloud Video Active');
+      } else if (reel.presetSrc) {
+        activePresetSrc = reel.presetSrc;
+        presetBtns.forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-src') === reel.presetSrc);
+        });
+        setVideoPreview(reel.presetSrc, 'Preset: ' + reel.presetSrc);
+      } else {
+        cleanupVideoPreview();
+      }
+    }
+
+    // Update UI headers
+    if (adminFormModeBadge) {
+      if (adminFormModeText) adminFormModeText.textContent = `Editing Reel #${index}`;
+    }
+    if (adminCancelEditBtn) adminCancelEditBtn.classList.remove('hidden');
+    if (adminSaveBtnText) adminSaveBtnText.textContent = `Save Changes to Reel #${index}`;
+
+    // Highlight in list
+    renderAdminReelsManager();
+
+    // Scroll smoothly to editor at top of modal
+    const glassCard = document.querySelector('.admin-glass-card');
+    if (glassCard) {
+      glassCard.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    const editorCard = document.getElementById('adminEditorCard');
+    if (editorCard) {
+      editorCard.classList.remove('pulse-editor');
+      void editorCard.offsetWidth;
+      editorCard.classList.add('pulse-editor');
+    }
+
+    showToast(`✏️ Editing Reel #${index}. Update fields above & tap Save!`, 'info');
+  }
+
+  function resetEditorForm() {
+    editingReelId = null;
+
+    if (adminTitleInput) adminTitleInput.value = '';
+    if (adminMsgInput) adminMsgInput.value = '';
+    updateLiveGlassPreview();
+    setMediaMode('video');
+    stagedCustomVideoBlob = null;
+    activePresetSrc = '';
+    presetBtns.forEach(b => b.classList.remove('active'));
+    cleanupVideoPreview();
+    updateReelPositionOptions();
+
+    if (adminDropzone) adminDropzone.classList.remove('has-staged-video');
+    if (adminVideoFile) adminVideoFile.value = '';
+    if (previewBadgeStatus) previewBadgeStatus.textContent = 'No Video Selected';
+    if (dropzoneMainText) dropzoneMainText.textContent = 'Tap or drop video file';
+    if (dropzoneSubText) dropzoneSubText.textContent = 'MP4 (H.264/AAC), WebM supported · Max 50MB';
+
+    if (adminFormModeText) adminFormModeText.textContent = 'Create Next Reel';
+    if (adminCancelEditBtn) adminCancelEditBtn.classList.add('hidden');
+    if (adminSaveBtnText) adminSaveBtnText.textContent = 'Add Reel to Feed';
+  }
+
+  async function addNewReel(e) {
+    if (e && e.preventDefault) e.preventDefault();
+
+    // If user already staged media or text in the form, treat "Add New Reel" as publishing/saving it!
+    const hasStagedMedia = Boolean(stagedCustomVideoBlob || (adminVideoFile && adminVideoFile.files && adminVideoFile.files[0]) || activePresetSrc);
+    const hasText = Boolean(adminMsgInput && adminMsgInput.value.trim().length > 0);
+    if (!editingReelId && (hasStagedMedia || hasText)) {
+      return saveReelAction(e);
+    }
+
+    resetEditorForm();
+    renderAdminReelsManager();
+
+    const glassCard = document.querySelector('.admin-glass-card');
+    if (glassCard) glassCard.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const editorCard = document.getElementById('adminEditorCard');
+    if (editorCard) {
+      editorCard.classList.remove('pulse-editor');
+      void editorCard.offsetWidth;
+      editorCard.classList.add('pulse-editor');
+    }
+
+    showToast('✨ Ready to create new reel! Select a video & tap Add Reel.', 'info');
+  }
+
+  function cancelEditing(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    resetEditorForm();
+    renderAdminReelsManager();
+    showToast('Edit cancelled. Ready to create next reel.', 'info');
+  }
+
+  if (adminCancelEditBtn) {
+    adminCancelEditBtn.onclick = cancelEditing;
+  }
+
+  // --- Atomic Save New Reel or Update Existing Reel ---
+  async function saveReelAction(e) {
+    if (e && e.preventDefault) e.preventDefault();
+
+    // Guard against duplicate concurrent execution
+    if (currentUploadState !== UploadState.IDLE) {
+      console.warn('Upload / Save in progress, ignoring duplicate trigger.');
+      return;
+    }
+
+    // Auto-recover staged video from file input if stagedCustomVideoBlob is null
+    if (!stagedCustomVideoBlob && adminVideoFile && adminVideoFile.files && adminVideoFile.files[0]) {
+      stagedCustomVideoBlob = adminVideoFile.files[0];
+    }
+    if (stagedCustomVideoBlob || activePresetSrc) {
+      selectedMediaType = 'video';
+    }
+
+    const saveBtn = adminSaveReelBtn;
+    const origBtnText = editingReelId ? 'Save Changes' : 'Add Reel to Feed';
+
+    const text = (adminMsgInput ? adminMsgInput.value.trim() : '');
+    const title = (adminTitleInput ? adminTitleInput.value.trim() : '') || 'Special Screening from Yash ❤️';
+    let reels = getReels();
+    const isEditing = Boolean(editingReelId);
+    const existingReel = isEditing ? reels.find(r => r.id === editingReelId) : null;
+
+    // Check media selection validity
+    if (selectedMediaType === 'video') {
+      const hasStaged = Boolean(stagedCustomVideoBlob);
+      const hasPreset = Boolean(activePresetSrc);
+      const hasExistingCloud = Boolean(existingReel && existingReel.videoUrl);
+      const hasExistingPreset = Boolean(existingReel && existingReel.presetSrc);
+
+      if (!hasStaged && !hasPreset && !hasExistingCloud && !hasExistingPreset) {
+        showToast('Please select an MP4/WebM video or pick a preset for your reel!', 'error');
+        return;
+      }
+    }
+
+    if (saveBtn) saveBtn.disabled = true;
+
+    let targetReelId = isEditing ? editingReelId : ('reel_' + Date.now());
+    let finalVideoUrl = '';
+    let finalPresetSrc = '';
+    let finalVideoType = 'preset';
+    let newUploadedStoragePath = null;
+    let oldStoragePathToDelete = null;
+
+    const { url: savedUrl, key: savedKey } = getValidSupabaseConfig();
+
+    try {
+      if (selectedMediaType === 'video') {
+        if (stagedCustomVideoBlob) {
+          if (stagedCustomVideoBlob.size <= 0) {
+            showToast('The selected video file is empty.', 'error');
+            currentUploadState = UploadState.IDLE;
+            if (saveBtn) saveBtn.disabled = false;
+            if (adminSaveBtnText) adminSaveBtnText.textContent = origBtnText;
+            return;
+          }
+          if (stagedCustomVideoBlob.size > MAX_VIDEO_SIZE_BYTES) {
+            const sizeMb = (stagedCustomVideoBlob.size / (1024 * 1024)).toFixed(1);
+            showToast(`Video exceeds 50MB limit (${sizeMb} MB). Please choose a smaller video.`, 'error');
+            currentUploadState = UploadState.IDLE;
+            if (saveBtn) saveBtn.disabled = false;
+            if (adminSaveBtnText) adminSaveBtnText.textContent = origBtnText;
+            return;
+          }
+
+          // Upload to Supabase Storage
+          currentUploadState = UploadState.UPLOADING;
+          if (adminSaveBtnText) adminSaveBtnText.textContent = '☁️ Uploading to Storage...';
+          showToast('☁️ Uploading video to Supabase Storage...', 'info');
+
+          const uploadResult = await uploadVideoToSupabaseStorage(stagedCustomVideoBlob, targetReelId);
+          if (!uploadResult || !uploadResult.publicUrl) {
+            showToast('❌ Video upload failed. Cannot publish reel without cloud video.', 'error');
+            currentUploadState = UploadState.IDLE;
+            if (saveBtn) saveBtn.disabled = false;
+            if (adminSaveBtnText) adminSaveBtnText.textContent = origBtnText;
+            return;
+          }
+
+          newUploadedStoragePath = uploadResult.storagePath;
+          finalVideoUrl = uploadResult.publicUrl;
+          finalVideoType = 'url';
+          finalPresetSrc = '';
+
+          // Track old video to delete if replacing existing
+          if (existingReel && existingReel.videoUrl && existingReel.videoUrl.includes('reels-videos/')) {
+            const oldParts = existingReel.videoUrl.split('reels-videos/');
+            if (oldParts.length > 1) {
+              oldStoragePathToDelete = decodeURIComponent(oldParts[1].split('?')[0]);
+            }
+          }
+        } else if (activePresetSrc) {
+          finalVideoType = 'preset';
+          finalPresetSrc = activePresetSrc;
+          finalVideoUrl = '';
+        } else if (existingReel) {
+          finalVideoType = existingReel.videoType || 'url';
+          finalVideoUrl = existingReel.videoUrl || '';
+          finalPresetSrc = existingReel.presetSrc || '';
+        }
+      } else {
+        // Text-only mode
+        finalVideoType = 'none';
+        finalPresetSrc = '';
+        finalVideoUrl = '';
+        if (existingReel && existingReel.videoUrl && existingReel.videoUrl.includes('reels-videos/')) {
+          const oldParts = existingReel.videoUrl.split('reels-videos/');
+          if (oldParts.length > 1) {
+            oldStoragePathToDelete = decodeURIComponent(oldParts[1].split('?')[0]);
+          }
+        }
+      }
+
+      // 3. Atomically Save / Upsert to Database
+      currentUploadState = UploadState.SAVING;
+      if (adminSaveBtnText) adminSaveBtnText.textContent = '💾 Saving to Cloud Database...';
+
+      const reelPayload = {
+        id: targetReelId,
+        title: title,
+        text: text,
+        media_type: selectedMediaType,
+        video_type: finalVideoType,
+        video_key: '',
+        video_url: finalVideoUrl,
+        preset_src: finalPresetSrc,
+        created_at: new Date(isEditing && existingReel ? (existingReel.createdAt || Date.now()) : Date.now()).toISOString()
+      };
+
+      let dbSaveSuccess = false;
+      let dbError = null;
+
+      // 1. Direct REST PostgREST upsert (most reliable and direct)
+      try {
+        const res = await fetch(`${savedUrl}/rest/v1/reels?on_conflict=id`, {
+          method: 'POST',
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates,return=representation'
+          },
+          body: JSON.stringify(reelPayload)
+        });
+
+        if (res.ok) {
+          dbSaveSuccess = true;
+        } else {
+          const errText = await res.text();
+          dbError = new Error(`DB HTTP ${res.status}: ${errText}`);
+          console.warn('Direct REST DB upsert notice, trying SDK:', dbError);
+        }
+      } catch (restErr) {
+        dbError = restErr;
+        console.warn('Direct REST DB upsert exception, trying SDK:', restErr);
+      }
+
+      // 2. SDK upsert fallback
+      if (!dbSaveSuccess && supabaseClient && typeof supabaseClient.from === 'function') {
+        try {
+          const { error } = await supabaseClient.from('reels').upsert(reelPayload, { onConflict: 'id' });
+          if (!error) {
+            dbSaveSuccess = true;
+          } else {
+            dbError = error;
+          }
+        } catch (sdkErr) {
+          dbError = sdkErr;
+        }
+      }
+
+      if (!dbSaveSuccess) {
+        console.error('Database save error:', dbError);
+        if (newUploadedStoragePath) {
+          try {
+            await fetch(`${savedUrl}/storage/v1/object/reels-videos`, {
+              method: 'DELETE',
+              headers: {
+                'apikey': savedKey,
+                'Authorization': `Bearer ${savedKey}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ prefixes: [newUploadedStoragePath] })
+            });
+          } catch (rbErr) {}
+        }
+        showToast(`❌ Database save failed: ${dbError ? dbError.message : 'Unknown error'}. Upload rolled back.`, 'error');
+        currentUploadState = UploadState.ERROR;
+        if (saveBtn) saveBtn.disabled = false;
+        if (adminSaveBtnText) adminSaveBtnText.textContent = origBtnText;
+        currentUploadState = UploadState.IDLE;
+        return;
+      }
+
+      // 4. Safe post-save cleanup: Remove replaced old storage video only after DB succeeds
+      if (oldStoragePathToDelete && oldStoragePathToDelete !== newUploadedStoragePath && supabaseClient) {
+        try {
+          await supabaseClient.storage.from('reels-videos').remove([oldStoragePathToDelete]);
+        } catch (delErr) {
+          console.warn('Old storage video cleanup notice:', delErr);
+        }
+      }
+
+      // 5. Update local state
+      const updatedLocalReel = {
+        id: reelPayload.id,
+        title: reelPayload.title,
+        text: reelPayload.text,
+        mediaType: reelPayload.media_type,
+        videoType: reelPayload.video_type,
+        videoKey: '',
+        videoUrl: reelPayload.video_url,
+        presetSrc: reelPayload.preset_src,
+        createdAt: new Date(reelPayload.created_at).getTime()
+      };
+
+      // Fresh read of reels to prevent stale overwrites
+      reels = getReels();
+      const chosenPos = parseInt(adminReelPositionSelect ? adminReelPositionSelect.value : '0', 10);
+      const targetPosIdx = chosenPos > 0 ? (chosenPos - 1) : reels.length;
+
+      if (isEditing) {
+        const oldIdx = reels.findIndex(r => r.id === targetReelId);
+        if (oldIdx !== -1) reels.splice(oldIdx, 1);
+        const insertIdx = Math.max(0, Math.min(reels.length, targetPosIdx));
+        reels.splice(insertIdx, 0, updatedLocalReel);
+      } else {
+        const insertIdx = Math.max(0, Math.min(reels.length, targetPosIdx));
+        reels.splice(insertIdx, 0, updatedLocalReel);
+      }
+
+      // Re-sequence createdAt timestamps across all reels so sequential ordering is 100% preserved in cloud & local queries
+      const baseTime = Date.now() - (reels.length * 10000);
+      reels.forEach((r, idx) => {
+        r.createdAt = baseTime + (idx * 5000);
+      });
+
+      saveReels(reels);
+
+      // Also ensure Supabase cloud table updates all reels' created_at for matching order across all devices
+      if (supabaseClient) {
+        for (let r of reels) {
+          try {
+            await supabaseClient.from('reels').upsert({
+              id: r.id,
+              title: r.title,
+              text: r.text,
+              media_type: r.mediaType,
+              video_type: r.videoType || 'url',
+              video_url: r.videoUrl || '',
+              preset_src: r.presetSrc || '',
+              created_at: new Date(r.createdAt).toISOString()
+            }, { onConflict: 'id' });
+          } catch (e) {}
+        }
+      }
+
+      resetEditorForm();
+      renderAdminReelsManager();
+      updateAdminMetrics();
+      await renderGloryFeed();
+
+      showToast(isEditing ? '✓ Reel updated & synced to Cloud!' : `✓ Reel placed at Position #${(chosenPos > 0 ? chosenPos : reels.length)} in feed!`, 'success');
+      currentUploadState = UploadState.SUCCESS;
+    } catch (err) {
+      console.error('saveReelAction failure:', err);
+      // Atomic rollback on unexpected error
+      if (newUploadedStoragePath && supabaseClient) {
+        try {
+          await supabaseClient.storage.from('reels-videos').remove([newUploadedStoragePath]);
+        } catch (rbErr) {
+          console.warn('Storage rollback cleanup notice:', rbErr);
+        }
+      }
+      showToast('Error saving reel: ' + (err.message || 'Operation failed'), 'error');
+      currentUploadState = UploadState.ERROR;
+    } finally {
+      currentUploadState = UploadState.IDLE;
+      if (saveBtn) saveBtn.disabled = false;
+      if (adminSaveBtnText) adminSaveBtnText.textContent = origBtnText;
+    }
+  }
+
+  // --- Lineup Reordering Actions (Move Up / Down) ---
+  async function moveReelUp(reelId) {
+    let reels = getReels();
+    const idx = reels.findIndex(r => r.id === reelId);
+    if (idx <= 0) return;
+
+    const [moved] = reels.splice(idx, 1);
+    reels.splice(idx - 1, 0, moved);
+
+    const baseTime = Date.now() - (reels.length * 10000);
+    reels.forEach((r, i) => { r.createdAt = baseTime + (i * 5000); });
+    saveReels(reels);
+
+    renderAdminReelsManager();
+    updateReelPositionOptions();
+    await renderGloryFeed();
+    showToast(`⬆ Moved "${escapeHtml(moved.title || 'Reel')}" up to Position #${idx}. Feed updated!`, 'success');
+
+    if (supabaseClient) {
+      for (let r of reels) {
+        try {
+          await supabaseClient.from('reels').upsert({
+            id: r.id,
+            title: r.title,
+            text: r.text,
+            media_type: r.mediaType,
+            video_type: r.videoType || 'url',
+            video_url: r.videoUrl || '',
+            preset_src: r.presetSrc || '',
+            created_at: new Date(r.createdAt).toISOString()
+          }, { onConflict: 'id' });
+        } catch (e) {}
+      }
+    }
+  }
+
+  async function moveReelDown(reelId) {
+    let reels = getReels();
+    const idx = reels.findIndex(r => r.id === reelId);
+    if (idx === -1 || idx >= reels.length - 1) return;
+
+    const [moved] = reels.splice(idx, 1);
+    reels.splice(idx + 1, 0, moved);
+
+    const baseTime = Date.now() - (reels.length * 10000);
+    reels.forEach((r, i) => { r.createdAt = baseTime + (i * 5000); });
+    saveReels(reels);
+
+    renderAdminReelsManager();
+    updateReelPositionOptions();
+    await renderGloryFeed();
+    showToast(`⬇ Moved "${escapeHtml(moved.title || 'Reel')}" down to Position #${idx + 2}. Feed updated!`, 'success');
+
+    if (supabaseClient) {
+      for (let r of reels) {
+        try {
+          await supabaseClient.from('reels').upsert({
+            id: r.id,
+            title: r.title,
+            text: r.text,
+            media_type: r.mediaType,
+            video_type: r.videoType || 'url',
+            video_url: r.videoUrl || '',
+            preset_src: r.presetSrc || '',
+            created_at: new Date(r.createdAt).toISOString()
+          }, { onConflict: 'id' });
+        } catch (e) {}
+      }
+    }
+  }
+
+  // Global window bindings for inline HTML handlers
+  window.__startEditingReel = startEditingReel;
+  window.__addNewReel = addNewReel;
+  window.__cancelEditing = cancelEditing;
+  window.__saveReel = saveReelAction;
+  window.__deleteReel = deleteReel;
+  window.__moveReelUp = moveReelUp;
+  window.__moveReelDown = moveReelDown;
+
+  // STRICT SINGLE EVENT LISTENER (Zero duplicate triggers)
+  if (adminSaveReelBtn) {
+    adminSaveReelBtn.onclick = saveReelAction;
+  }
+
+  // --- Delete Reel with Complete Cloud Consistency ---
+  async function deleteReel(reelId) {
+    let reels = getReels();
+    const target = reels.find(r => r.id === reelId);
+    if (!target) return;
+
+    const { url: savedUrl, key: savedKey } = getValidSupabaseConfig();
+
+    // 1. Delete from Supabase Database FIRST (prevent readers from seeing it)
+    try {
+      await fetch(`${savedUrl}/rest/v1/reels?id=eq.${encodeURIComponent(reelId)}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': savedKey,
+          'Authorization': `Bearer ${savedKey}`
+        }
+      });
+    } catch (err) {
+      console.warn('Direct REST DB delete notice:', err);
+    }
+    if (supabaseClient) {
+      try {
+        await supabaseClient.from('reels').delete().eq('id', reelId);
+      } catch (err) {}
+    }
+
+    // 2. Delete video from Supabase Storage SECOND (only if not shared with another reel)
+    const isShared = reels.some(r => r.id !== reelId && r.videoUrl === target.videoUrl);
+    if (!isShared && target.videoUrl && target.videoUrl.includes('reels-videos')) {
+      try {
+        const parts = target.videoUrl.split('reels-videos/');
+        if (parts.length > 1) {
+          const storagePath = decodeURIComponent(parts[1].split('?')[0]);
+          await fetch(`${savedUrl}/storage/v1/object/reels-videos`, {
+            method: 'DELETE',
+            headers: {
+              'apikey': savedKey,
+              'Authorization': `Bearer ${savedKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ prefixes: [storagePath] })
+          });
+          if (supabaseClient && supabaseClient.storage) {
+            await supabaseClient.storage.from('reels-videos').remove([storagePath]);
+          }
+        }
+      } catch (err) {
+        console.warn('Storage delete notice:', err);
+      }
+    }
+
+    // 3. Clean local IndexedDB if any legacy key exists
+    if (target.videoKey) {
+      await deleteVideoBlob(target.videoKey);
+    }
+
+    // 4. Update local state
+    reels = reels.filter(r => r.id !== reelId);
+    localStorage.setItem('cinema_reels_initialized', 'true');
+
+    if (editingReelId === reelId) {
+      cancelEditing();
+    }
+
+    saveReels(reels);
+    updateReelPositionOptions();
+    renderAdminReelsManager();
+    await renderGloryFeed();
+    updateAdminMetrics();
+    showToast('✓ Reel permanently deleted from Cloud & feed.', 'info');
+  }
+
+  // --- Glory Full-Screen Multi-Reels Renderer (Up to N Reels) ---
+  function pauseAllFeedVideos() {
+    const videos = document.querySelectorAll('#reelsWrapper .reel-video');
+    videos.forEach(v => v.pause());
+  }
+
+  async function renderGloryFeed() {
+    if (!reelsWrapper) return;
+    const reels = getReels();
+
+    // Revoke old object URLs cleanly
+    feedObjectUrls.forEach(url => URL.revokeObjectURL(url));
+    feedObjectUrls = [];
+
+    reelsWrapper.innerHTML = '';
+
+    if (reels.length === 0) {
+      reelsWrapper.innerHTML = `
+        <div class="reel-slide active" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; height:100vh;">
+          <div style="font-size:3rem; margin-bottom:16px;">✨</div>
+          <h2 style="font-family:'Cinzel', serif; font-size:1.4rem; color:#fff; letter-spacing:0.06em; margin-bottom:10px;">Private Lounge</h2>
+          <p style="font-size:0.9rem; color:rgba(255,255,255,0.7); max-width:320px; line-height:1.5;">Yash is preparing the next private screening for you, Glory. Check back soon ❤️</p>
+        </div>
+      `;
+      if (feedCounter) feedCounter.textContent = '0 / 0';
+      if (feedNavControls) feedNavControls.style.display = 'none';
+      return;
+    }
+
+    for (let i = 0; i < reels.length; i++) {
+      const reel = reels[i];
+      const index = i + 1;
+      const isVideo = reel.mediaType === 'video';
+
+      const likesMap = getGloryLikes();
+      const isReelLiked = Boolean(likesMap[reel.id]?.liked);
+      const allReplies = getGloryReplies();
+      const reelComments = allReplies.filter(r => (r.reelId === reel.id || (!r.reelId && String(r.reelIndex) === String(index))) && !r.text.includes('[GLORY_LIKED]') && !r.text.includes('[LIKE]'));
+      const reelCommentsCount = reelComments.length;
+
+      let videoSrc = '';
+      let isVideoSourceMissing = false;
+
+      if (isVideo) {
+        if (reel.videoType === 'url') {
+          // Cloud-uploaded video: MUST use reel.videoUrl only! Never fall back to presets.
+          if (reel.videoUrl && typeof reel.videoUrl === 'string' && reel.videoUrl.trim().startsWith('http')) {
+            videoSrc = reel.videoUrl.trim();
+          } else {
+            isVideoSourceMissing = true;
+          }
+        } else if (reel.videoType === 'preset') {
+          // Preset demo video explicitly chosen
+          if (reel.presetSrc && typeof reel.presetSrc === 'string' && reel.presetSrc.trim()) {
+            videoSrc = reel.presetSrc.trim();
+          } else {
+            isVideoSourceMissing = true;
+          }
+        } else {
+          // Unspecified: If valid http url exists use it, otherwise mark missing
+          if (reel.videoUrl && typeof reel.videoUrl === 'string' && reel.videoUrl.trim().startsWith('http')) {
+            videoSrc = reel.videoUrl.trim();
+          } else if (reel.presetSrc && reel.videoType === 'preset') {
+            videoSrc = reel.presetSrc.trim();
+          } else {
+            isVideoSourceMissing = true;
+          }
+        }
+      }
+
+      const section = document.createElement('section');
+      section.className = `reel-slide ${index === 1 ? 'active' : ''}`;
+      section.setAttribute('data-index', index.toString());
+      section.id = `reel-${index}`;
+
+      section.innerHTML = `
+        <div class="reel-ambient-bg"></div>
+
+        <div class="reel-content-stage">
+          <!-- Top Text: Cinema Glass Text (Static Cinzel Glassmorphism, NO font animation) -->
+          <div class="reel-zone reel-zone-top">
+            <div class="glass-text feed-glass-text static-glass-text" data-text="${escapeHtml(reel.text)}">${escapeHtml(reel.text)}</div>
+          </div>
+
+          ${isVideo ? `
+          <!-- Center Video Box: Same size as login, 16:9, centered, NOT zoomed to phone screen -->
+          <div class="reel-video-frame-box">
+            <video class="reel-video" playsinline webkit-playsinline x5-playsinline loop preload="${index === 1 ? 'auto' : (index === 2 ? 'metadata' : 'none')}" muted ${videoSrc ? `src="${videoSrc}"` : ''}></video>
+            <div class="video-frame-reflection"></div>
+            
+            <!-- Video Buffering Spinner (Neon / Cinematic) -->
+            <div class="reel-video-loader" style="display:none;">
+              <div class="reel-spinner"></div>
+              <span class="reel-loader-text">Loading video...</span>
+            </div>
+
+            <!-- Video Playback Error Box with Retry -->
+            <div class="reel-video-error-box" style="${isVideoSourceMissing ? 'display:flex;' : 'display:none;'}">
+              <span class="reel-error-icon">⚠️</span>
+              <span class="reel-error-msg">${isVideoSourceMissing ? 'Cloud video source missing' : 'Video could not be played'}</span>
+              <button type="button" class="reel-retry-btn" data-video-src="${escapeHtml(videoSrc)}">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                <span>Tap to Retry</span>
+              </button>
+            </div>
+          </div>
+          ` : `
+          <!-- Center Luxury Glass Typography Card for Text-Only Reels (Video is Optional!) -->
+          <div class="reel-textonly-frame-box">
+            <div class="textonly-sparkles"></div>
+            <div class="textonly-decor-quote">“</div>
+            <p class="textonly-body-text">${escapeHtml(reel.text)}</p>
+          </div>
+          `}
+
+          <!-- Down Zone: Glory Quick Reply Bar to Yash (Replaces Special Screening Narrative Card) -->
+          <div class="reel-zone reel-zone-bottom" onclick="event.stopPropagation()">
+            <div class="reel-reply-box">
+              <div class="reel-reply-context-pill">
+                <span class="context-dot"></span>
+                <span>Replying to Reel #${index}</span>
+              </div>
+              <form class="reel-reply-form" data-reel-id="${reel.id}" data-reel-index="${index}" data-reel-title="${escapeHtml(reel.title || 'Reel #' + index)}">
+                <div class="reel-reply-input-wrap">
+                  <input type="text" class="reel-reply-input" placeholder="Reply to Yash on Reel #${index}..." maxlength="300" autocomplete="off">
+                  <button type="submit" class="reel-reply-send-btn" title="Send Reply to Yash">
+                    <span>Reply</span>
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side Reel Actions (Real Instagram-Style Like & Comments) -->
+        <div class="reel-action-bar" onclick="event.stopPropagation()">
+          <button type="button" class="reel-action-btn ig-like-btn ${isReelLiked ? 'liked' : ''}" data-reel-id="${reel.id}" aria-label="Like reel">
+            <svg class="heart-icon" viewBox="0 0 24 24" fill="${isReelLiked ? '#ff3040' : 'none'}" stroke="currentColor" stroke-width="${isReelLiked ? '0' : '2'}">
+              ${isReelLiked 
+                ? '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>' 
+                : '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>'}
+            </svg>
+            <span class="action-count ig-like-count">${isReelLiked ? '1' : 'Like'}</span>
+          </button>
+          <button type="button" class="reel-action-btn ig-comment-btn" data-reel-id="${reel.id}" aria-label="Open comments">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+            <span class="action-count ig-comments-count">${reelCommentsCount > 0 ? reelCommentsCount : 'Comment'}</span>
+          </button>
+        </div>
+      `;
+
+      // Setup click-to-reveal on this slide
+      const stage = section.querySelector('.reel-content-stage');
+      const video = section.querySelector('.reel-video');
+      const loader = section.querySelector('.reel-video-loader');
+      const errBox = section.querySelector('.reel-video-error-box');
+      const retryBtn = section.querySelector('.reel-retry-btn');
+
+      if (video) {
+        video.addEventListener('waiting', () => {
+          if (loader && !video.paused) loader.style.display = 'flex';
+        });
+        video.addEventListener('stalled', () => {
+          if (loader && !video.paused) loader.style.display = 'flex';
+        });
+        video.addEventListener('playing', () => {
+          if (loader) loader.style.display = 'none';
+          if (errBox) errBox.style.display = 'none';
+        });
+        video.addEventListener('canplay', () => {
+          if (loader) loader.style.display = 'none';
+        });
+        video.addEventListener('error', (errEvt) => {
+          console.warn(`Reel #${index} video playback notice:`, errEvt);
+          if (loader) loader.style.display = 'none';
+          if (errBox) {
+            errBox.style.display = 'flex';
+            const msgEl = errBox.querySelector('.reel-error-msg');
+            if (msgEl) msgEl.textContent = 'Playback interrupted · Tap retry';
+          }
+        });
+
+        if (retryBtn) {
+          retryBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (errBox) errBox.style.display = 'none';
+            if (loader) loader.style.display = 'flex';
+            const curTime = video.currentTime || 0;
+            const curSrc = video.src;
+            video.src = '';
+            video.load();
+            video.src = curSrc;
+            video.currentTime = curTime;
+            video.load();
+            video.play().catch(() => {});
+          });
+        }
+      }
+
+      function revealAndTogglePlay(e) {
+        if (e && e.target && (e.target.closest('.reel-action-bar') || e.target.closest('.feed-top-bar') || e.target.closest('.reel-reply-box') || e.target.closest('.reel-retry-btn') || e.target.closest('#reelCommentsDrawer'))) return;
+
+        if (!section.classList.contains('revealed')) {
+          section.classList.add('revealed');
+          if (video) {
+            video.muted = feedMuted;
+            video.volume = 1.0;
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(() => {
+                video.muted = true;
+                video.play().catch(() => {});
+              });
+            }
+          }
+        } else {
+          if (video) {
+            if (video.paused) {
+              const playPromise = video.play();
+              if (playPromise !== undefined) playPromise.catch(() => {});
+            } else {
+              video.pause();
+            }
+          }
+        }
+      }
+
+      // Tap & Double-Tap detection: Screen tap directly starts video, zero buttons required
+      let lastTapTime = 0;
+      let tapTimeout = null;
+
+      function handleStageTap(e) {
+        if (e.target.closest('.reel-action-bar') || e.target.closest('.feed-top-bar') || e.target.closest('.reel-reply-box') || e.target.closest('.reel-retry-btn') || e.target.closest('#reelCommentsDrawer')) return;
+
+        const currentTime = Date.now();
+        const tapLength = currentTime - lastTapTime;
+
+        if (tapLength < 320 && tapLength > 0) {
+          // Double-tap detected: Like & pop Instagram heart!
+          if (tapTimeout) clearTimeout(tapTimeout);
+          toggleGloryLike(reel.id, true);
+          const popContainer = section.querySelector('.reel-video-frame-box') || section.querySelector('.reel-textonly-frame-box') || stage;
+          spawnDoubleTapHeart(popContainer);
+          lastTapTime = 0;
+        } else {
+          lastTapTime = currentTime;
+          // If not revealed yet, directly play INSTANTLY on first screen tap!
+          if (!section.classList.contains('revealed')) {
+            revealAndTogglePlay(e);
+          } else {
+            tapTimeout = setTimeout(() => {
+              revealAndTogglePlay(e);
+            }, 300);
+          }
+        }
+      }
+
+      if (stage) stage.addEventListener('click', handleStageTap);
+
+      // Like button click handler
+      const likeBtn = section.querySelector('.ig-like-btn');
+      if (likeBtn) {
+        likeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleGloryLike(reel.id);
+        });
+      }
+
+      // Comments button click handler
+      const commentBtn = section.querySelector('.ig-comment-btn');
+      if (commentBtn) {
+        commentBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openCommentsDrawer(reel.id, reel.title, index);
+        });
+      }
+
+      // Setup Glory direct reply form submit
+      const replyForm = section.querySelector('.reel-reply-form');
+      if (replyForm) {
+        replyForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const input = replyForm.querySelector('.reel-reply-input');
+          const text = input ? input.value.trim() : '';
+          if (!text) {
+            showToast('Please type a reply before sending.', 'info');
+            return;
+          }
+          const isYashMode = (isYashViewer === true);
+          const activeSender = isYashMode ? 'Yash' : 'Glory';
+
+          const repObj = {
+            id: 'reply_' + Date.now(),
+            text: text,
+            reelIndex: index,
+            reelTitle: reel.title || `Reel #${index}`,
+            reelText: reel.text || '',
+            sender: activeSender,
+            createdAt: Date.now()
+          };
+          const replies = getGloryReplies();
+          replies.unshift(repObj);
+          saveGloryReplies(replies);
+
+          if (supabaseClient) {
+            supabaseClient.from('glory_replies').insert([{
+              id: repObj.id,
+              reel_id: reel.id || ('reel_' + index),
+              reel_index: repObj.reelIndex,
+              reel_title: repObj.reelTitle,
+              reel_text: repObj.reelText,
+              reply_text: repObj.text,
+              sender: repObj.sender
+            }]).then(() => {}).catch(err => console.warn('Supabase reply insert warning:', err));
+          }
+
+          input.value = '';
+          input.blur();
+          showToast(`💌 Reply to Reel #${index} sent to Yash! ✨`, 'success');
+          renderAdminReplies();
+          updateAdminMetrics();
+        });
+      }
+
+      reelsWrapper.appendChild(section);
+    }
+
+    setupReelIntersectionObserver();
+
+    // Nav controls visibility
+    if (feedCounter) feedCounter.textContent = `1 / ${reels.length}`;
+    if (feedNavControls) {
+      feedNavControls.style.display = reels.length > 1 ? 'flex' : 'none';
+    }
+  }
+
+  function scrollToReel(targetIndex) {
+    const slides = document.querySelectorAll('#reelsWrapper .reel-slide');
+    if (!slides || slides.length === 0) return;
+    const clamped = Math.max(1, Math.min(targetIndex, slides.length));
+    const targetSlide = document.querySelector(`#reelsWrapper .reel-slide[data-index="${clamped}"]`);
+    if (targetSlide) {
+      targetSlide.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      playActiveReelSlide(clamped);
+    }
+  }
+
+  function playActiveReelSlide(index) {
+    currentFeedIndex = index;
+    const slides = document.querySelectorAll('#reelsWrapper .reel-slide');
+    const total = slides.length;
+    if (feedCounter) feedCounter.textContent = `${index} / ${total}`;
+
+    slides.forEach((slide, i) => {
+      const slideIndex = i + 1;
+      const video = slide.querySelector('.reel-video');
+      if (!video) return;
+
+      if (slideIndex === index) {
+        slide.classList.add('active');
+        video.preload = 'auto';
+        if (slide.classList.contains('revealed')) {
+          video.muted = feedMuted;
+          video.volume = 1.0;
+          const playPromise = video.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {
+              video.muted = true;
+              video.play().catch(() => {});
+            });
+          }
+        }
+      } else {
+        slide.classList.remove('active');
+        video.pause();
+        if (Math.abs(slideIndex - index) > 1) {
+          video.preload = 'none';
+        }
+      }
+    });
+  }
+
+  function setupReelIntersectionObserver() {
+    if (!('IntersectionObserver' in window) || !reelsWrapper) return;
+    if (reelsObserver) reelsObserver.disconnect();
+
+    reelsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const index = parseInt(entry.target.getAttribute('data-index') || '1', 10);
+          playActiveReelSlide(index);
+        }
+      });
+    }, {
+      root: reelsWrapper,
+      threshold: 0.6
+    });
+
+    const slides = document.querySelectorAll('#reelsWrapper .reel-slide');
+    slides.forEach(slide => reelsObserver.observe(slide));
+  }
+
+  function createFloatingHeart(x, y) {
+    const heart = document.createElement('div');
+    heart.className = 'floating-heart';
+    const hearts = ['❤️', '💖', '✨', '💕', '💗', '🔥'];
+    heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+    heart.style.left = `${x}px`;
+    heart.style.top = `${y}px`;
+    const dx = (Math.random() - 0.5) * 80;
+    const rot = (Math.random() - 0.5) * 40;
+    heart.style.setProperty('--dx', `${dx}px`);
+    heart.style.setProperty('--rot', `${rot}deg`);
+    document.body.appendChild(heart);
+    setTimeout(() => heart.remove(), 1200);
+  }
+
+  function setupReelControlsOnce() {
+    if (reelControlsInitialized) return;
+    reelControlsInitialized = true;
+
+    // Sound toggle
+    if (feedSoundBtn) {
+      feedSoundBtn.onclick = () => {
+        feedMuted = !feedMuted;
+        const onIcon = feedSoundBtn.querySelector('.sound-on-icon');
+        const offIcon = feedSoundBtn.querySelector('.sound-off-icon');
+        if (onIcon) onIcon.classList.toggle('hidden', feedMuted);
+        if (offIcon) offIcon.classList.toggle('hidden', !feedMuted);
+
+        const activeSlide = document.querySelector('#reelsWrapper .reel-slide.active');
+        if (activeSlide) {
+          const v = activeSlide.querySelector('.reel-video');
+          if (v) {
+            v.muted = feedMuted;
+            v.volume = 1.0;
+            v.play().catch(() => {});
+          }
+        }
+        showToast(feedMuted ? 'Muted' : 'Sound On 🔊', 'info');
+      };
+    }
+
+    // Prev / Next Navigation Chevrons (Explicit 1-by-1 advance)
+    if (feedPrevBtn) {
+      feedPrevBtn.onclick = () => {
+        if (currentFeedIndex > 1) {
+          scrollToReel(currentFeedIndex - 1);
+        }
+      };
+    }
+
+    if (feedNextBtn) {
+      feedNextBtn.onclick = () => {
+        const slides = document.querySelectorAll('#reelsWrapper .reel-slide');
+        if (currentFeedIndex < slides.length) {
+          scrollToReel(currentFeedIndex + 1);
+        }
+      };
+    }
+
+    // Instagram-style 1-by-1 Wheel Physics (Desktop / Trackpad)
+    let wheelLocked = false;
+    if (reelsWrapper) {
+      reelsWrapper.addEventListener('wheel', (e) => {
+        const slides = document.querySelectorAll('#reelsWrapper .reel-slide');
+        if (slides.length <= 1) return;
+
+        if (Math.abs(e.deltaY) > 20) {
+          e.preventDefault();
+          if (wheelLocked) return;
+          wheelLocked = true;
+
+          if (e.deltaY > 0 && currentFeedIndex < slides.length) {
+            scrollToReel(currentFeedIndex + 1);
+          } else if (e.deltaY < 0 && currentFeedIndex > 1) {
+            scrollToReel(currentFeedIndex - 1);
+          }
+
+          setTimeout(() => {
+            wheelLocked = false;
+          }, 650);
+        }
+      }, { passive: false });
+
+      // Discrete Touch Flick Physics (Mobile Swiping 1-by-1)
+      let touchStartY = 0;
+      let touchStartTime = 0;
+
+      reelsWrapper.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length > 0) {
+          touchStartY = e.touches[0].clientY;
+          touchStartTime = Date.now();
+        }
+      }, { passive: true });
+
+      reelsWrapper.addEventListener('touchend', (e) => {
+        if (!e.changedTouches || e.changedTouches.length === 0) return;
+        const touchEndY = e.changedTouches[0].clientY;
+        const diffY = touchStartY - touchEndY;
+        const duration = Date.now() - touchStartTime;
+
+        if (Math.abs(diffY) > 40 && duration < 600) {
+          const slides = document.querySelectorAll('#reelsWrapper .reel-slide');
+          if (diffY > 0 && currentFeedIndex < slides.length) {
+            scrollToReel(currentFeedIndex + 1);
+          } else if (diffY < 0 && currentFeedIndex > 1) {
+            scrollToReel(currentFeedIndex - 1);
+          }
+        }
+      }, { passive: true });
+    }
+
+    // Keyboard Navigation in Feed (1-by-1 Reel Transitions)
+    window.addEventListener('keydown', (e) => {
+      if (gloryFeed && !gloryFeed.classList.contains('hidden')) {
+        const slides = document.querySelectorAll('#reelsWrapper .reel-slide');
+        if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+          e.preventDefault();
+          if (currentFeedIndex < slides.length) {
+            scrollToReel(currentFeedIndex + 1);
+          }
+        } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+          e.preventDefault();
+          if (currentFeedIndex > 1) {
+            scrollToReel(currentFeedIndex - 1);
+          }
+        }
+      }
+    });
+
+    // Likes & floating hearts
+    if (reelsWrapper) {
+      reelsWrapper.addEventListener('click', (e) => {
+        const likeBtn = e.target.closest('.like-btn') || e.target.closest('.love-note-btn');
+        if (likeBtn) {
+          likeBtn.classList.toggle('liked');
+          createFloatingHeart(e.clientX || (window.innerWidth - 30), e.clientY || (window.innerHeight - 100));
+        }
+      });
+    }
+
+    // Sign out from Feed
+    if (feedSignOutBtn) {
+      feedSignOutBtn.onclick = logoutUser;
+    }
+  }
+
+  async function initReelsFeed() {
+    await renderGloryFeed();
+    setupReelControlsOnce();
+    if (reelsWrapper) reelsWrapper.scrollTop = 0;
+  }
+
+  async function showGloryDashboard() {
+    if (gloryIntroScreen) gloryIntroScreen.classList.add('hidden');
+    if (gloryFeed) gloryFeed.classList.remove('hidden');
+    if (adminModal) adminModal.classList.add('hidden');
+
+    if (supabaseClient) {
+      try {
+        await syncAllCloudData(null, true);
+      } catch (err) {
+        console.warn('Glory cloud sync:', err);
+      }
+    }
+
+    initReelsFeed();
+  }
+
+  function startGlory5sIntroSequence() {
+    if (!gloryIntroScreen) {
+      showGloryDashboard();
+      return;
+    }
+
+    if (gloryFeed) gloryFeed.classList.add('hidden');
+    gloryIntroScreen.classList.remove('hidden');
+
+    if (introProgressBar) {
+      introProgressBar.style.transition = 'none';
+      introProgressBar.style.width = '0%';
+      void introProgressBar.offsetWidth;
+      introProgressBar.style.transition = 'width 5s linear';
+      introProgressBar.style.width = '100%';
+    }
+
+    let remaining = 5;
+    if (introCountdownText) introCountdownText.textContent = `Connecting with Yash... ${remaining}s`;
+    const interval = setInterval(() => {
+      remaining--;
+      if (remaining > 0) {
+        if (introCountdownText) introCountdownText.textContent = `Connecting with Yash... ${remaining}s`;
+      } else {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      showGloryDashboard();
+      showToast("Welcome Glory! ✨ Yash's reels are now playing.", "success");
+    }, 5000);
+  }
+
+  // --- Master View Switcher ---
+  function renderView(role, isFreshLogin = false) {
+    if (role === 'glory') {
+      if (isYashViewer) {
+        if (feedBadgeText) feedBadgeText.textContent = '👑 Yash View ✦ Live';
+        if (feedBadgePill) feedBadgePill.classList.add('is-yash');
+        if (feedBackToStudioBtn) feedBackToStudioBtn.classList.remove('hidden');
+      } else {
+        if (feedBadgeText) feedBadgeText.textContent = 'Glory Feed ✦ Live';
+        if (feedBadgePill) feedBadgePill.classList.remove('is-yash');
+        const isActuallyAdmin = localStorage.getItem('cinema_session_role') === 'admin';
+        if (feedBackToStudioBtn) {
+          if (isActuallyAdmin) feedBackToStudioBtn.classList.remove('hidden');
+          else feedBackToStudioBtn.classList.add('hidden');
+        }
+      }
+
+      // 1. Hide login page & ambient theater
+      if (videoContainer) videoContainer.classList.add('hidden');
+      if (theaterStage) theaterStage.classList.add('hidden');
+      if (bgVideo) {
+        bgVideo.pause();
+        bgVideo.muted = true;
+        bgVideo.currentTime = 0;
+      }
+      if (bgVideoBlur) {
+        bgVideoBlur.pause();
+        bgVideoBlur.muted = true;
+        bgVideoBlur.currentTime = 0;
+      }
+
+      // 2. Either show 5s intro on fresh login or go directly to feed
+      if (isFreshLogin) {
+        startGlory5sIntroSequence();
+      } else {
+        showGloryDashboard();
+      }
+    } else if (role === 'admin') {
+      isYashViewer = false;
+      if (feedBackToStudioBtn) feedBackToStudioBtn.classList.add('hidden');
+      if (gloryIntroScreen) gloryIntroScreen.classList.add('hidden');
+      if (gloryFeed) {
+        gloryFeed.classList.add('hidden');
+        pauseAllFeedVideos();
+      }
+      if (videoContainer) videoContainer.classList.remove('hidden');
+      if (theaterStage) theaterStage.classList.remove('hidden');
+      if (adminModal) adminModal.classList.remove('hidden');
+      safePlayVideo(bgVideo);
+      if (bgVideoBlur) safePlayVideo(bgVideoBlur);
+
+      // Lock admin text to static Cinzel (NO font cycling!)
+      updateCinemaDisplay("YASH ADMIN");
+      if (cinematicText) {
+        cinematicText.style.fontFamily = '"Cinzel", serif';
+        cinematicText.style.letterSpacing = '0.08em';
+        cinematicText.style.transform = 'none';
+      }
+
+      if (!editingReelId) {
+        if (adminMsgInput) adminMsgInput.value = '';
+        if (adminTitleInput) adminTitleInput.value = '';
+      }
+      updateLiveGlassPreview();
+      updateReelPositionOptions();
+      initSupabase();
+      switchAdminTab('reels');
+      renderAdminReelsManager();
+      renderAdminReplies();
+      renderGloryLogins();
+      updateAdminMetrics();
+    } else {
+      // Default Login Screen: Resume font cycling on "YASH"
+      isYashViewer = false;
+      if (feedBackToStudioBtn) feedBackToStudioBtn.classList.add('hidden');
+      if (gloryIntroScreen) gloryIntroScreen.classList.add('hidden');
+      if (gloryFeed) {
+        gloryFeed.classList.add('hidden');
+        pauseAllFeedVideos();
+      }
+      if (videoContainer) videoContainer.classList.remove('hidden');
+      if (theaterStage) theaterStage.classList.remove('hidden');
+      if (adminModal) adminModal.classList.add('hidden');
+      updateCinemaDisplay("YASH");
+      playIntroVideo();
+    }
+  }
+
+  // --- Auth Form Submit ---
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    activateSound();
+
+    usernameError.textContent = '';
+    passwordError.textContent = '';
+    const userCapsule = usernameInput.closest('.clean-input-capsule');
+    const passCapsule = passwordInput.closest('.clean-input-capsule');
+    if (userCapsule) userCapsule.classList.remove('has-error');
+    if (passCapsule) passCapsule.classList.remove('has-error');
+
+    const userVal = usernameInput.value.trim().toLowerCase();
+    const passVal = passwordInput.value;
+
+    let hasError = false;
+    if (!userVal) {
+      usernameError.textContent = 'Please enter your ID.';
+      if (userCapsule) userCapsule.classList.add('has-error');
+      hasError = true;
+    }
+    if (!passVal) {
+      passwordError.textContent = 'Please enter your password.';
+      if (passCapsule) passCapsule.classList.add('has-error');
+      hasError = true;
+    }
+    if (hasError) {
+      shakeForm();
+      return;
+    }
+
+    // Role Verification:
+    // 1) Yash Admin: id = yash, password = yashadmin123
+    // 2) Glory: id = glory or Glory, password = lory
+    let matchedRole = null;
+    if (userVal === 'yash' && passVal === 'yashadmin123') {
+      matchedRole = 'admin';
+    } else if (userVal === 'glory' && passVal === 'lory') {
+      matchedRole = 'glory';
+    }
+
+    if (!matchedRole) {
+      usernameError.textContent = 'Invalid ID or password';
+      if (userCapsule) userCapsule.classList.add('has-error');
+      if (passCapsule) passCapsule.classList.add('has-error');
+      shakeForm();
+      showToast('Invalid credentials! Check ID & password.', 'error');
+      return;
+    }
+
+    loginBtn.disabled = true;
+    loginSpinner.classList.remove('hidden');
+    const btnText = loginBtn.querySelector('.btn-text');
+    const btnArrow = loginBtn.querySelector('.btn-arrow');
+    if (btnText) btnText.textContent = 'Authenticating...';
+    if (btnArrow) btnArrow.classList.add('hidden');
+
+    setTimeout(() => {
+      loginBtn.disabled = false;
+      loginSpinner.classList.add('hidden');
+      if (btnText) btnText.textContent = 'Sign In';
+      if (btnArrow) btnArrow.classList.remove('hidden');
+
+      isYashViewer = false;
+      if (matchedRole === 'glory') {
+        recordGloryLogin('glory');
+      }
+
+      localStorage.setItem('cinema_session_role', matchedRole);
+      renderView(matchedRole, matchedRole === 'glory');
+    }, 600);
+  });
+
+  // --- Sign Out Actions ---
+  function logoutUser() {
+    isYashViewer = false;
+    localStorage.removeItem('cinema_session_role');
+    usernameInput.value = '';
+    passwordInput.value = '';
+    if (gloryIntroScreen) gloryIntroScreen.classList.add('hidden');
+    if (feedBackToStudioBtn) feedBackToStudioBtn.classList.add('hidden');
+    renderView(null);
+    showToast('Signed out successfully.', 'info');
+  }
+
+  if (adminLogoutBtn) adminLogoutBtn.addEventListener('click', logoutUser);
+
+  // --- View Feed as Yash Preview / Watch Button ---
+  if (adminViewAsYashBtn) {
+    adminViewAsYashBtn.addEventListener('click', () => {
+      isYashViewer = true;
+      renderView('glory');
+      if (feedBadgeText) feedBadgeText.textContent = '👑 Yash View ✦ Live';
+      if (feedBadgePill) feedBadgePill.classList.add('is-yash');
+      if (feedBackToStudioBtn) feedBackToStudioBtn.classList.remove('hidden');
+      showToast('Viewing feed as Yash 👑. You can watch reels & comment as Yash!', 'success');
+    });
+  }
+
+  // --- View as Glory Preview Button ---
+  if (adminViewAsGloryBtn) {
+    adminViewAsGloryBtn.addEventListener('click', () => {
+      isYashViewer = false;
+      renderView('glory');
+      if (feedBadgeText) feedBadgeText.textContent = 'Glory Feed ✦ Live';
+      if (feedBadgePill) feedBadgePill.classList.remove('is-yash');
+      if (feedBackToStudioBtn) feedBackToStudioBtn.classList.remove('hidden');
+      showToast("Previewing Glory's multi-reel feed. Tap Studio to return.", 'info');
+    });
+  }
+
+  // --- Back to Studio Button from Feed ---
+  if (feedBackToStudioBtn) {
+    feedBackToStudioBtn.addEventListener('click', () => {
+      isYashViewer = false;
+      renderView('admin');
+      showToast('Returned to Yash Admin Studio ⚡', 'info');
+    });
+  }
+
+  // --- Real-time Storage Sync (across tabs and devices) ---
+  window.addEventListener('storage', async (e) => {
+    if (e.key === 'cinema_admin_reels' || e.key === 'cinema_broadcast_time') {
+      const currentRole = localStorage.getItem('cinema_session_role');
+      if (currentRole === 'glory') {
+        await renderGloryFeed();
+        showToast('New reels updated by Yash!', 'success');
+      } else if (currentRole === 'admin') {
+        renderAdminReelsManager();
+        updateAdminMetrics();
+      }
+    } else if (e.key === 'cinema_glory_replies' || e.key === 'cinema_glory_replies_time') {
+      const currentRole = localStorage.getItem('cinema_session_role');
+      if (currentRole === 'admin') {
+        renderAdminReplies();
+        updateAdminMetrics();
+        showToast('💌 New reply received from Glory! ✨', 'success');
+      }
+    } else if (e.key === 'cinema_glory_logins' || e.key === 'cinema_glory_logins_time') {
+      const currentRole = localStorage.getItem('cinema_session_role');
+      if (currentRole === 'admin') {
+        renderGloryLogins();
+        updateAdminMetrics();
+        showToast('🕒 Glory signed in! Session recorded.', 'info');
+      }
+    }
+  });
+
+  // --- Initialize Saved Session or Default View ---
+  initSupabase();
+  loadRenderEnvConfig();
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramRole = urlParams.get('role');
+  const savedRole = paramRole || localStorage.getItem('cinema_session_role');
+  renderView(savedRole);
+
+  // Proactively run cloud sync on startup so fresh sessions/devices load cloud reels immediately
+  if (supabaseClient) {
+    syncAllCloudData(null, true).then(() => {
+      const activeRole = localStorage.getItem('cinema_session_role') || (new URLSearchParams(window.location.search)).get('role');
+      if (activeRole === 'glory') {
+        renderGloryFeed();
+      } else if (activeRole === 'admin') {
+        renderAdminReelsManager();
+      }
+    }).catch(err => console.warn('Initial cloud sync notice:', err));
+  }
+
+})();
