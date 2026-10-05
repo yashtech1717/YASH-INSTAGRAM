@@ -3165,10 +3165,10 @@
 
     setupReelIntersectionObserver();
 
-    // Nav controls visibility
+    // Nav controls visibility (Shows indicator with reel count)
     if (feedCounter) feedCounter.textContent = `1 / ${reels.length}`;
     if (feedNavControls) {
-      feedNavControls.style.display = reels.length > 1 ? 'flex' : 'none';
+      feedNavControls.style.display = reels.length >= 1 ? 'flex' : 'none';
     }
   }
 
