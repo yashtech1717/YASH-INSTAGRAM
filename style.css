@@ -1588,7 +1588,7 @@ html, body {
   background: radial-gradient(circle at center, rgba(30, 8, 20, 0.45) 0%, rgba(5, 2, 9, 0.98) 100%);
 }
 
-/* Content Stage - Symmetrically Arranged (Top Text, Center Video, Down Text) */
+/* Content Stage - Centered Video Stage with Floating Top Text & Down Reply */
 .reel-content-stage {
   position: relative;
   width: 100%;
@@ -1597,11 +1597,12 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: calc(env(safe-area-inset-top, 16px) + 52px) 16px calc(env(safe-area-inset-bottom, 16px) + 18px) 16px;
+  justify-content: center;
+  padding: calc(env(safe-area-inset-top, 16px) + 36px) 16px calc(env(safe-area-inset-bottom, 16px) + 12px) 16px;
   z-index: 10;
   box-sizing: border-box;
   cursor: pointer;
+  overflow: hidden;
 }
 
 /* Top and Down Text Zones */
@@ -1611,24 +1612,27 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
   z-index: 15;
   pointer-events: auto;
 }
 
 .reel-zone-top {
-  flex: 1;
-  justify-content: center;
+  pointer-events: none;
 }
 
 .reel-zone-bottom {
-  flex: 1;
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 8px) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
   max-width: 440px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: flex-end;
-  padding-bottom: calc(env(safe-area-inset-bottom, 8px) + 2px);
+  pointer-events: auto;
+  z-index: 30;
 }
 
 /* Centered Video Frame (Crisp 16:9, Not Zoomed/Stretched to Phone Screen) */
@@ -1664,7 +1668,7 @@ html, body {
    Cinematic Rack Focus / Depth-of-Field Transition Engine
    ========================================================================== */
 
-/* State 1: BEFORE CLICK (Text Focused in Foreground; Video, Reply, Like & Comment Blurred in Background) */
+/* State 1: BEFORE CLICK (Text Focused in Foreground Center; Video Lifted Up & Heavily Blurred in Background) */
 .reel-slide:not(.revealed) .reel-zone-top {
   position: absolute;
   top: 50%;
@@ -1680,21 +1684,21 @@ html, body {
   filter: blur(0px) brightness(1);
   opacity: 1;
   pointer-events: none;
-  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.75s ease;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.8s ease;
 }
 
-/* Background Elements: Video lifted up (-28px) and blurred in background */
+/* Background Elements: Video lifted up (-95px) and heavily blurred in background */
 .reel-slide:not(.revealed) .reel-video-frame-box,
 .reel-slide:not(.revealed) .reel-textonly-frame-box {
-  filter: blur(10px) brightness(0.52);
-  transform: translateY(-28px) scale(0.95);
-  opacity: 0.65;
+  filter: blur(14px) brightness(0.48);
+  transform: translateY(-95px) scale(0.92);
+  opacity: 0.55;
   z-index: 10;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.75s ease;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.8s ease;
 }
 
 .reel-slide:not(.revealed) .reel-action-bar {
@@ -1704,21 +1708,20 @@ html, body {
   transform: scale(0.92);
   pointer-events: none !important;
   z-index: 12;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.75s ease;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.8s ease;
 }
 
 .reel-slide:not(.revealed) .reel-zone-bottom {
   display: flex !important;
   filter: blur(6px) brightness(0.65);
   opacity: 0.45;
-  transform: scale(0.92);
   pointer-events: none !important;
   z-index: 12;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.75s ease;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.8s ease;
 }
 
 .reel-slide:not(.revealed) .reel-video-loader,
@@ -1726,16 +1729,16 @@ html, body {
   display: none !important;
 }
 
-/* State 2: AFTER CLICK (Video COMES DOWN into place & Removes Blur; Controls Unblur; Text GOES UP & Adds Blur!) */
+/* State 2: AFTER CLICK (Video COMES DOWN into Center & Removes Blur; Controls Unblur; Text GOES UP & Adds Blur!) */
 .reel-slide.revealed .reel-video-frame-box,
 .reel-slide.revealed .reel-textonly-frame-box {
   filter: blur(0px) brightness(1);
   transform: translateY(0) scale(1);
   opacity: 1;
   z-index: 25;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.75s ease;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.8s ease;
 }
 
 .reel-slide.revealed .reel-action-bar {
@@ -1745,42 +1748,41 @@ html, body {
   opacity: 1;
   pointer-events: auto !important;
   z-index: 35;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.75s ease;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.8s ease;
 }
 
 .reel-slide.revealed .reel-zone-bottom {
   display: flex !important;
   filter: blur(0px) brightness(1);
-  transform: scale(1);
   opacity: 1;
   pointer-events: auto !important;
   z-index: 35;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.75s ease;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.8s ease;
 }
 
-/* State 2 Text: Placed in Background with Blur Effect (Exactly like video was in background before click) */
+/* State 2 Text: Text GOES UP to the top and adds blur! */
 .reel-slide.revealed .reel-zone-top {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, calc(-50% - 28px)) scale(0.95);
+  transform: translate(-50%, calc(-50% - clamp(170px, 24vh, 230px))) scale(0.85);
   width: 90%;
   max-width: 440px;
-  z-index: 8; /* Behind foreground video which has z-index 25 */
+  z-index: 8; /* Behind foreground video */
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  filter: blur(10px) brightness(0.52);
-  opacity: 0.55;
+  filter: blur(8px) brightness(0.48);
+  opacity: 0.42;
   pointer-events: none;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.75s ease;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.8s ease;
 }
 
 /* Zero buttons for tap to play: Screen click directly starts video */
@@ -1913,7 +1915,7 @@ html, body {
   50% { transform: scale(1.05); box-shadow: 0 12px 40px rgba(255, 51, 102, 0.8); }
 }
 
-/* Floating Top Bar (Haute-Couture Cinematic Glass Bar) */
+/* Floating Top Bar (Compact Minimalist Glass Bar) */
 .feed-top-bar {
   position: absolute;
   top: 0;
@@ -1923,10 +1925,10 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top, 16px) + 12px) 18px 14px 18px;
-  background: linear-gradient(180deg, rgba(6, 2, 14, 0.78) 0%, rgba(6, 2, 14, 0.28) 65%, transparent 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  padding: calc(env(safe-area-inset-top, 8px) + 6px) 12px 6px 12px;
+  background: linear-gradient(180deg, rgba(6, 2, 14, 0.72) 0%, rgba(6, 2, 14, 0.2) 65%, transparent 100%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   pointer-events: none;
 }
 
@@ -1934,20 +1936,20 @@ html, body {
   pointer-events: auto;
 }
 
-/* Glory Feed Live Badge Pill */
+/* Glory Feed Live Badge Pill (Compact) */
 .feed-badge-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 16px;
+  gap: 5px;
+  padding: 3px 9px;
   background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-top: 1.2px solid rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-top: 1.2px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.35);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
 }
 
@@ -1958,11 +1960,11 @@ html, body {
 }
 
 .feed-badge-pill .live-dot {
-  width: 7px;
-  height: 7px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #ff3366;
-  box-shadow: 0 0 10px #ff3366, 0 0 18px rgba(255, 51, 102, 0.7);
+  box-shadow: 0 0 8px #ff3366;
   animation: livePillPulse 2s ease-in-out infinite;
 }
 
@@ -1970,90 +1972,101 @@ html, body {
   0%, 100% {
     transform: scale(1);
     opacity: 1;
-    box-shadow: 0 0 8px #ff3366, 0 0 16px rgba(255, 51, 102, 0.6);
+    box-shadow: 0 0 6px #ff3366;
   }
   50% {
-    transform: scale(1.35);
+    transform: scale(1.3);
     opacity: 0.8;
-    box-shadow: 0 0 14px #ff3366, 0 0 24px rgba(255, 51, 102, 0.9);
+    box-shadow: 0 0 10px #ff3366, 0 0 16px rgba(255, 51, 102, 0.8);
   }
 }
 
 .feed-badge-text {
   font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.72rem;
+  font-size: 0.60rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   color: #ffffff;
   text-transform: uppercase;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .feed-top-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 
-/* Audio / Sound Toggle Button */
+/* Audio / Sound Toggle Button (Compact) */
 .feed-icon-btn {
   background: rgba(255, 255, 255, 0.09);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-top: 1.2px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-top: 1.2px solid rgba(255, 255, 255, 0.45);
   border-radius: 50%;
-  width: 38px;
-  height: 38px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 1.5px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.feed-icon-btn svg {
+  width: 13px !important;
+  height: 13px !important;
 }
 
 .feed-icon-btn:hover {
   background: rgba(255, 255, 255, 0.18);
   border-color: rgba(255, 51, 102, 0.6);
   color: #ff5c8a;
-  transform: translateY(-2px) scale(1.06);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), 0 0 16px rgba(255, 51, 102, 0.35);
+  transform: translateY(-1.5px) scale(1.05);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), 0 0 12px rgba(255, 51, 102, 0.35);
 }
 
 .feed-icon-btn:active {
   transform: translateY(0) scale(0.94);
 }
 
-/* Sign Out / Sign In Button on Glory View */
+/* Sign Out / Sign In Button on Glory View (Compact) */
 .feed-signout-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 16px;
+  gap: 4px;
+  padding: 3px 9px;
   background: rgba(255, 51, 102, 0.18);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 51, 102, 0.45);
-  border-top: 1.2px solid rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 51, 102, 0.4);
+  border-top: 1.2px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
   color: #ffffff;
   font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.74rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 14px rgba(255, 51, 102, 0.2), inset 0 1px 1.5px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.feed-signout-btn svg {
+  width: 10px !important;
+  height: 10px !important;
 }
 
 .feed-signout-btn:hover {
   background: rgba(255, 51, 102, 0.42);
   border-color: rgba(255, 51, 102, 0.85);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55), 0 0 22px rgba(255, 51, 102, 0.5);
-  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), 0 0 16px rgba(255, 51, 102, 0.45);
+  transform: translateY(-1.5px) scale(1.02);
 }
 
 .feed-signout-btn:active {
@@ -3408,44 +3421,48 @@ html, body {
 .feed-badge-pill.is-yash {
   background: rgba(245, 158, 11, 0.16) !important;
   border-color: rgba(245, 158, 11, 0.45) !important;
-  border-top-color: rgba(253, 230, 138, 0.7) !important;
+  border-top-color: rgba(253, 230, 138, 0.6) !important;
   color: #fde68a !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 20px rgba(245, 158, 11, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 14px rgba(245, 158, 11, 0.25) !important;
+  padding: 3px 9px !important;
 }
 
 .feed-badge-pill.is-yash .live-dot {
+  width: 5px !important;
+  height: 5px !important;
   background: #f59e0b !important;
-  box-shadow: 0 0 10px #f59e0b, 0 0 18px rgba(245, 158, 11, 0.8) !important;
+  box-shadow: 0 0 8px #f59e0b !important;
 }
 
 .feed-badge-pill.is-yash .feed-badge-text {
   color: #fde68a !important;
+  font-size: 0.60rem !important;
 }
 
 .feed-studio-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 16px;
+  gap: 4px;
+  padding: 3px 9px;
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(239, 68, 68, 0.95));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-top: 1.2px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: 1.2px solid rgba(255, 255, 255, 0.6);
   border-radius: 999px;
   color: #ffffff;
   font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.74rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(245, 158, 11, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .feed-studio-btn:hover {
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 12px 28px rgba(245, 158, 11, 0.6), 0 0 20px rgba(245, 158, 11, 0.35);
+  transform: translateY(-1.5px) scale(1.02);
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.5), 0 0 16px rgba(245, 158, 11, 0.35);
 }
 
 .feed-studio-btn:active {
