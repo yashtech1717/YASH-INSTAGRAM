@@ -2901,8 +2901,10 @@
         <div class="reel-ambient-bg"></div>
 
         <div class="reel-content-stage">
-          <!-- Ambient Background Typography: YASH (Watermark behind video like LAPTOP image) -->
-          <div class="reel-bg-watermark-text" aria-hidden="true">YASH</div>
+          <!-- Ambient Background Watermark: Yash Neon Signature Image -->
+          <div class="reel-bg-watermark-wrap" aria-hidden="true">
+            <img src="assets/yash_signature_neon.png" alt="Yash Signature" class="reel-bg-watermark-img" loading="eager">
+          </div>
 
           <!-- Top Text: Cinema Glass Text (Static Cinzel Glassmorphism, NO font animation) -->
           <div class="reel-zone reel-zone-top">

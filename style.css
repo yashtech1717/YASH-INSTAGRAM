@@ -3568,11 +3568,11 @@ html, body {
   opacity: 0.18;
 }
 
-/* Feed Nav Controls (Reel Indicator: Moved Up, Exactly Down of the YASH Watermark on Right Side) */
+/* Feed Nav Controls (Reel Indicator: Moved Up, Right Below Yash Signature on Right Side) */
 .feed-nav-controls {
   position: absolute;
   right: 14px;
-  top: calc(clamp(55px, 11vh, 105px) + clamp(3.8rem, 18vw, 7.5rem) + 8px);
+  top: clamp(140px, 22vh, 220px);
   transform: none;
   z-index: 35;
   display: flex;
@@ -3761,25 +3761,20 @@ html, body {
 }
 
 /* ==========================================================================
-   Ambient Background Typography: "YASH" (Like "LAPTOP" in reference image)
-   - Heavy bold geometric sans-serif placed in top background behind video
+   Ambient Background Watermark: Neon Yash Signature (Uploaded by user)
+   - Replaced plain "YASH" text with transparent neon cyan cursive signature image
    - Revealed smoothly when video begins playing
    ========================================================================== */
-.reel-bg-watermark-text {
+.reel-bg-watermark-wrap {
   position: absolute;
-  top: clamp(55px, 11vh, 105px);
+  top: clamp(45px, 9vh, 85px);
   left: 50%;
-  transform: translate(-50%, -15px) scale(0.96);
-  font-family: 'Montserrat', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  font-size: clamp(3.8rem, 18vw, 7.5rem);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  text-indent: 0.16em;
-  line-height: 0.95;
-  color: rgba(255, 255, 255, 0.12);
-  text-shadow: 0 4px 25px rgba(0, 0, 0, 0.9);
-  white-space: nowrap;
+  transform: translate(-50%, -15px) scale(0.95);
+  width: min(80vw, 340px);
+  max-height: clamp(75px, 15vh, 130px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   pointer-events: none;
   user-select: none;
   z-index: 2;
@@ -3789,9 +3784,20 @@ html, body {
   will-change: transform, opacity;
 }
 
-/* When Video Plays: Reveal YASH boldly in top background behind the video */
-.reel-slide.revealed .reel-bg-watermark-text {
-  opacity: 1;
+.reel-bg-watermark-img {
+  width: 100%;
+  height: auto;
+  max-height: clamp(75px, 15vh, 130px);
+  object-fit: contain;
+  filter: drop-shadow(0 0 14px rgba(0, 210, 255, 0.55)) drop-shadow(0 4px 22px rgba(0, 0, 0, 0.9));
+  pointer-events: none;
+  user-select: none;
+  transform: translateZ(0);
+}
+
+/* When Video Plays: Reveal Neon Yash Signature in top background behind video */
+.reel-slide.revealed .reel-bg-watermark-wrap {
+  opacity: 0.95;
   transform: translate(-50%, 0) scale(1);
 }
 
