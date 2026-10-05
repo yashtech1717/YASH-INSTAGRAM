@@ -2907,26 +2907,6 @@
           <!-- Top Text: Cinema Glass Text (Static Cinzel Glassmorphism, NO font animation) -->
           <div class="reel-zone reel-zone-top">
             <div class="glass-text feed-glass-text static-glass-text" data-text="${escapeHtml(reel.text)}">${escapeHtml(reel.text)}</div>
-
-            <!-- Interactive Optical Magnifying Glass Loupe (Down of text before play) -->
-            <div class="reel-magnifier-widget" aria-label="Magnifying Glass" title="Touch & drag over text to zoom">
-              <div class="magnifier-lens">
-                <div class="magnifier-zoom-window">
-                  <div class="magnifier-zoomed-text" aria-hidden="true">${escapeHtml(reel.text)}</div>
-                </div>
-                <div class="magnifier-glass-sheen"></div>
-                <div class="magnifier-glass-rim"></div>
-                <div class="magnifier-center-crosshair"></div>
-              </div>
-              <div class="magnifier-handle"></div>
-              <div class="magnifier-hint-badge">
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <circle cx="11" cy="11" r="7"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <span>Drag to Zoom</span>
-              </div>
-            </div>
           </div>
 
           ${isVideo ? `
@@ -3054,7 +3034,7 @@
       }
 
       function revealAndTogglePlay(e) {
-        if (e && e.target && (e.target.closest('.reel-action-bar') || e.target.closest('.feed-top-bar') || e.target.closest('.reel-reply-box') || e.target.closest('.reel-retry-btn') || e.target.closest('#reelCommentsDrawer') || e.target.closest('.reel-magnifier-widget'))) return;
+        if (e && e.target && (e.target.closest('.reel-action-bar') || e.target.closest('.feed-top-bar') || e.target.closest('.reel-reply-box') || e.target.closest('.reel-retry-btn') || e.target.closest('#reelCommentsDrawer'))) return;
 
         if (!section.classList.contains('revealed')) {
           section.classList.add('revealed');
@@ -3086,7 +3066,7 @@
       let tapTimeout = null;
 
       function handleStageTap(e) {
-        if (e.target.closest('.reel-action-bar') || e.target.closest('.feed-top-bar') || e.target.closest('.reel-reply-box') || e.target.closest('.reel-retry-btn') || e.target.closest('#reelCommentsDrawer') || e.target.closest('.reel-magnifier-widget')) return;
+        if (e.target.closest('.reel-action-bar') || e.target.closest('.feed-top-bar') || e.target.closest('.reel-reply-box') || e.target.closest('.reel-retry-btn') || e.target.closest('#reelCommentsDrawer')) return;
 
         const currentTime = Date.now();
         const tapLength = currentTime - lastTapTime;
@@ -3179,153 +3159,6 @@
           renderAdminReplies();
           updateAdminMetrics();
         });
-      }
-
-      // Setup Interactive Optical Magnifying Glass Loupe Drag & Real-time Zoom Engine
-      const magWidget = section.querySelector('.reel-magnifier-widget');
-      const baseTextEl = section.querySelector('.feed-glass-text');
-      const zoomedTextEl = section.querySelector('.magnifier-zoomed-text');
-      const lensEl = section.querySelector('.magnifier-lens');
-
-      if (magWidget && baseTextEl && zoomedTextEl && lensEl) {
-        let isDraggingMag = false;
-        let magStartX = 0;
-        let magStartY = 0;
-        let magDeltaX = 0;
-        let magDeltaY = 0;
-        const MAG_ZOOM_RATIO = 2.1;
-
-        function updateMagnification() {
-          if (!isDraggingMag) return;
-          const textRect = baseTextEl.getBoundingClientRect();
-          const lensRect = lensEl.getBoundingClientRect();
-          const lensCenterX = lensRect.left + lensRect.width / 2;
-          const lensCenterY = lensRect.top + lensRect.height / 2;
-
-          const margin = 24;
-          const isOverText = (
-            lensCenterX >= textRect.left - margin &&
-            lensCenterX <= textRect.right + margin &&
-            lensCenterY >= textRect.top - margin &&
-            lensCenterY <= textRect.bottom + margin
-          );
-
-          if (isOverText) {
-            zoomedTextEl.style.width = `${textRect.width}px`;
-            zoomedTextEl.style.height = `${textRect.height}px`;
-
-            const relX = lensCenterX - textRect.left;
-            const relY = lensCenterY - textRect.top;
-            const lensHalfW = lensRect.width / 2;
-            const lensHalfH = lensRect.height / 2;
-
-            const transX = lensHalfW - (relX * MAG_ZOOM_RATIO);
-            const transY = lensHalfH - (relY * MAG_ZOOM_RATIO);
-
-            zoomedTextEl.style.transform = `translate3d(${transX}px, ${transY}px, 0) scale(${MAG_ZOOM_RATIO})`;
-            zoomedTextEl.style.opacity = '1';
-          } else {
-            zoomedTextEl.style.opacity = '0';
-          }
-        }
-
-        function onMagPointerDown(e) {
-          e.stopPropagation();
-          if (section.classList.contains('revealed')) return;
-
-          isDraggingMag = true;
-          magStartX = (e.clientX !== undefined) ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-          magStartY = (e.clientY !== undefined) ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
-          magDeltaX = 0;
-          magDeltaY = 0;
-
-          magWidget.classList.add('is-dragging');
-          magWidget.style.transition = 'none';
-
-          if (e.target && e.target.setPointerCapture && e.pointerId) {
-            try { e.target.setPointerCapture(e.pointerId); } catch(err) {}
-          }
-
-          window.addEventListener('pointermove', onMagPointerMove, { passive: false });
-          window.addEventListener('pointerup', onMagPointerUp);
-          window.addEventListener('pointercancel', onMagPointerUp);
-          window.addEventListener('touchmove', onMagTouchMove, { passive: false });
-          window.addEventListener('touchend', onMagTouchEnd);
-        }
-
-        function onMagPointerMove(e) {
-          if (!isDraggingMag) return;
-          if (e.cancelable) e.preventDefault();
-          e.stopPropagation();
-
-          const curX = (e.clientX !== undefined) ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-          const curY = (e.clientY !== undefined) ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
-
-          magDeltaX = curX - magStartX;
-          magDeltaY = curY - magStartY;
-
-          magWidget.style.transform = `translate3d(${magDeltaX}px, ${magDeltaY}px, 0)`;
-          updateMagnification();
-        }
-
-        function onMagTouchMove(e) {
-          if (!isDraggingMag || !e.touches || !e.touches[0]) return;
-          if (e.cancelable) e.preventDefault();
-          e.stopPropagation();
-
-          const curX = e.touches[0].clientX;
-          const curY = e.touches[0].clientY;
-
-          magDeltaX = curX - magStartX;
-          magDeltaY = curY - magStartY;
-
-          magWidget.style.transform = `translate3d(${magDeltaX}px, ${magDeltaY}px, 0)`;
-          updateMagnification();
-        }
-
-        function resetMagToHome() {
-          if (!isDraggingMag) return;
-          isDraggingMag = false;
-          magWidget.classList.remove('is-dragging');
-
-          // Smooth spring return to original resting place below text
-          magWidget.style.transition = 'transform 0.52s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-          magWidget.style.transform = 'translate3d(0px, 0px, 0)';
-          zoomedTextEl.style.opacity = '0';
-
-          setTimeout(() => {
-            if (!isDraggingMag) {
-              magWidget.style.transition = '';
-            }
-          }, 530);
-
-          window.removeEventListener('pointermove', onMagPointerMove);
-          window.removeEventListener('pointerup', onMagPointerUp);
-          window.removeEventListener('pointercancel', onMagPointerUp);
-          window.removeEventListener('touchmove', onMagTouchMove);
-          window.removeEventListener('touchend', onMagTouchEnd);
-        }
-
-        function onMagPointerUp(e) {
-          if (!isDraggingMag) return;
-          if (e) {
-            e.stopPropagation();
-            if (e.target && e.target.releasePointerCapture && e.pointerId) {
-              try { e.target.releasePointerCapture(e.pointerId); } catch(err) {}
-            }
-          }
-          resetMagToHome();
-        }
-
-        function onMagTouchEnd(e) {
-          if (!isDraggingMag) return;
-          if (e) e.stopPropagation();
-          resetMagToHome();
-        }
-
-        magWidget.addEventListener('pointerdown', onMagPointerDown);
-        magWidget.addEventListener('touchstart', onMagPointerDown, { passive: false });
-        magWidget.addEventListener('click', (e) => e.stopPropagation());
       }
 
       reelsWrapper.appendChild(section);
