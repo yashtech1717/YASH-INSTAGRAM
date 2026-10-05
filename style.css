@@ -3655,14 +3655,16 @@ html, body {
    - Retains natural emotional capitalization
 /* ==========================================================================
 /* ==========================================================================
-   Glory Feed Text: Javanese Text Font (Compact, Elegant, Symmetrical Center Alignment)
+   Glory Feed Text: Monotype Corsiva Font (Unbolded, Compact, Symmetrical Center Alignment)
    - Styled for multi-line text (10+ lines) to fit comfortably in a very short, compact area
+   - Uses genuine unbolded Monotype Corsiva cursive
    ========================================================================== */
 .feed-glass-text {
   position: relative;
-  font-family: 'Javanese Text', 'JavaneseText', 'javatext', 'Tw Cen MT', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: 'Monotype Corsiva', 'MonotypeCorsiva', cursive, serif !important;
   font-size: clamp(0.72rem, 2.3vw, 0.88rem) !important;
-  font-weight: 500 !important;
+  font-weight: normal !important;
+  font-style: italic !important;
   letter-spacing: 0.02em !important;
   line-height: 1.36 !important;
   text-transform: none !important;
@@ -3698,11 +3700,12 @@ html, body {
   border-radius: 999px;
 }
 
-/* Before Play: Centered Crisp Text in Javanese Text (Focused in Foreground - Compact & Beautifully Aligned) */
+/* Before Play: Centered Crisp Text in Monotype Corsiva (Focused in Foreground - Compact & Beautifully Aligned) */
 .reel-slide:not(.revealed) .feed-glass-text {
-  font-family: 'Javanese Text', 'JavaneseText', 'javatext', 'Tw Cen MT', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: 'Monotype Corsiva', 'MonotypeCorsiva', cursive, serif !important;
   font-size: clamp(0.72rem, 2.3vw, 0.88rem) !important;
-  font-weight: 500 !important;
+  font-weight: normal !important;
+  font-style: italic !important;
   letter-spacing: 0.02em !important;
   line-height: 1.36 !important;
   padding: 6px 14px !important;
@@ -3729,8 +3732,10 @@ html, body {
 
 /* After Click: Text goes into background with blur effect */
 .reel-slide.revealed .feed-glass-text {
-  font-family: 'Javanese Text', 'JavaneseText', 'javatext', 'Tw Cen MT', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: 'Monotype Corsiva', 'MonotypeCorsiva', cursive, serif !important;
   font-size: clamp(0.68rem, 2.1vw, 0.82rem) !important;
+  font-weight: normal !important;
+  font-style: italic !important;
   line-height: 1.32 !important;
   max-height: clamp(120px, 22vh, 180px) !important;
   filter: blur(8px) brightness(0.5) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8)) !important;
@@ -3749,6 +3754,41 @@ html, body {
 .reel-slide.revealed .feed-glass-text::after {
   content: none !important;
   display: none !important;
+}
+
+/* ==========================================================================
+   Ambient Background Typography: "YASH" (Like "LAPTOP" in reference image)
+   - Heavy bold geometric sans-serif placed in top background behind video
+   - Revealed smoothly when video begins playing
+   ========================================================================== */
+.reel-bg-watermark-text {
+  position: absolute;
+  top: clamp(55px, 11vh, 105px);
+  left: 50%;
+  transform: translate(-50%, -15px) scale(0.96);
+  font-family: 'Montserrat', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: clamp(3.8rem, 18vw, 7.5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
+  line-height: 0.95;
+  color: rgba(255, 255, 255, 0.12);
+  text-shadow: 0 4px 25px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+/* When Video Plays: Reveal YASH boldly in top background behind the video */
+.reel-slide.revealed .reel-bg-watermark-text {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
 }
 
 /* ==========================================================================

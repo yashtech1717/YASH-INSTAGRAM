@@ -2900,6 +2900,9 @@
         <div class="reel-ambient-bg"></div>
 
         <div class="reel-content-stage">
+          <!-- Ambient Background Typography: YASH (Watermark behind video like LAPTOP image) -->
+          <div class="reel-bg-watermark-text" aria-hidden="true">YASH</div>
+
           <!-- Top Text: Cinema Glass Text (Static Cinzel Glassmorphism, NO font animation) -->
           <div class="reel-zone reel-zone-top">
             <div class="glass-text feed-glass-text static-glass-text" data-text="${escapeHtml(reel.text)}">${escapeHtml(reel.text)}</div>
