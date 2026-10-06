@@ -2903,7 +2903,7 @@
         <div class="reel-content-stage">
           <!-- Ambient Background Watermark: Yash Neon Signature Image -->
           <div class="reel-bg-watermark-wrap" aria-hidden="true">
-            <img src="assets/yash_signature_neon.png" alt="Yash Signature" class="reel-bg-watermark-img" loading="eager">
+            <img src="assets/yash_signature_neon.png?v=67.0" alt="Yash Signature" class="reel-bg-watermark-img" loading="eager">
           </div>
 
           <!-- Top Text: Cinema Glass Text (Static Cinzel Glassmorphism, NO font animation) -->

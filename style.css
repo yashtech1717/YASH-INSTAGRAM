@@ -3770,8 +3770,8 @@ html, body {
   top: clamp(45px, 9vh, 85px);
   left: 50%;
   transform: translate(-50%, -15px) scale(0.95);
-  width: min(80vw, 340px);
-  max-height: clamp(75px, 15vh, 130px);
+  width: min(85vw, 380px);
+  max-height: clamp(85px, 18vh, 150px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -3787,9 +3787,9 @@ html, body {
 .reel-bg-watermark-img {
   width: 100%;
   height: auto;
-  max-height: clamp(75px, 15vh, 130px);
+  max-height: clamp(85px, 18vh, 150px);
   object-fit: contain;
-  filter: drop-shadow(0 0 14px rgba(0, 210, 255, 0.55)) drop-shadow(0 4px 22px rgba(0, 0, 0, 0.9));
+  filter: drop-shadow(0 0 16px rgba(0, 220, 255, 0.6)) drop-shadow(0 4px 25px rgba(0, 0, 0, 0.9));
   pointer-events: none;
   user-select: none;
   transform: translateZ(0);
