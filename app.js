@@ -48,6 +48,30 @@
   const feedBadgePill = document.getElementById('feedBadgePill');
   const feedBadgeText = document.getElementById('feedBadgeText');
   const feedBackToStudioBtn = document.getElementById('feedBackToStudioBtn');
+  const feedQuickEditBtn = document.getElementById('feedQuickEditBtn');
+  const feedQuickEditDrawer = document.getElementById('feedQuickEditDrawer');
+  const quickEditBackdrop = document.getElementById('quickEditBackdrop');
+  const quickEditCloseBtn = document.getElementById('quickEditCloseBtn');
+  const quickEditCancelBtn = document.getElementById('quickEditCancelBtn');
+  const quickEditSaveBtn = document.getElementById('quickEditSaveBtn');
+  const quickEditDeleteBtn = document.getElementById('quickEditDeleteBtn');
+  const quickEditReelTitle = document.getElementById('quickEditReelTitle');
+  const quickEditReelSubtitle = document.getElementById('quickEditReelSubtitle');
+  const quickEditPosBadge = document.getElementById('quickEditPosBadge');
+  const quickEditMoveUpBtn = document.getElementById('quickEditMoveUpBtn');
+  const quickEditMoveDownBtn = document.getElementById('quickEditMoveDownBtn');
+  const quickEditMoveTopBtn = document.getElementById('quickEditMoveTopBtn');
+  const quickEditMoveBottomBtn = document.getElementById('quickEditMoveBottomBtn');
+  const quickEditPositionPills = document.getElementById('quickEditPositionPills');
+  const quickEditLineupPreview = document.getElementById('quickEditLineupPreview');
+  const quickEditTitleInput = document.getElementById('quickEditTitleInput');
+  const quickEditTextInput = document.getElementById('quickEditTextInput');
+  const quickEditTypeVideoBtn = document.getElementById('quickEditTypeVideoBtn');
+  const quickEditTypeTextBtn = document.getElementById('quickEditTypeTextBtn');
+  const quickEditVideoUrlGroup = document.getElementById('quickEditVideoUrlGroup');
+  const quickEditVideoUrlInput = document.getElementById('quickEditVideoUrlInput');
+  const quickEditPresetChips = document.getElementById('quickEditPresetChips');
+  let currentEditingQuickReelId = null;
   const adminReelPositionSelect = document.getElementById('adminReelPositionSelect');
   let isYashViewer = false;
   const adminFormModeBadge = document.getElementById('adminFormModeBadge');
@@ -1113,6 +1137,9 @@
           </div>
         </div>
         <div class="admin-reel-actions">
+          <select class="admin-reel-pos-quick-select" title="Change position directly" onchange="if(window.__moveReelToPosition){window.__moveReelToPosition('${reel.id}', parseInt(this.value, 10));}">
+            ${reels.map((_, rIdx) => `<option value="${rIdx + 1}" ${rIdx === index ? 'selected' : ''}>Pos #${rIdx + 1}</option>`).join('')}
+          </select>
           <button type="button" class="admin-reel-action-btn admin-reel-move-btn" title="Move Up in Lineup" ${index === 0 ? 'disabled' : ''} onclick="if(window.__moveReelUp){window.__moveReelUp('${reel.id}');}">
             <span>▲</span>
           </button>
@@ -2744,6 +2771,365 @@
   window.__deleteReel = deleteReel;
   window.__moveReelUp = moveReelUp;
   window.__moveReelDown = moveReelDown;
+  window.__moveReelToPosition = moveReelToPosition;
+  window.__openFeedQuickEditor = openFeedQuickEditor;
+  window.__closeFeedQuickEditor = closeFeedQuickEditor;
+
+  // --- Move Reel Directly to Any Arbitrary Position (1-indexed) ---
+  async function moveReelToPosition(reelId, newPos1Indexed) {
+    let reels = getReels();
+    const fromIdx = reels.findIndex(r => r.id === reelId);
+    if (fromIdx === -1) return;
+    const toIdx = Math.max(0, Math.min(reels.length - 1, newPos1Indexed - 1));
+    if (fromIdx === toIdx) return;
+
+    const [moved] = reels.splice(fromIdx, 1);
+    reels.splice(toIdx, 0, moved);
+
+    const baseTime = Date.now() - (reels.length * 10000);
+    reels.forEach((r, i) => { r.createdAt = baseTime + (i * 5000); });
+    saveReels(reels);
+
+    renderAdminReelsManager();
+    updateReelPositionOptions();
+    await renderGloryFeed();
+
+    currentFeedIndex = toIdx + 1;
+    scrollToReel(currentFeedIndex);
+
+    if (feedQuickEditDrawer && !feedQuickEditDrawer.classList.contains('hidden')) {
+      openFeedQuickEditor(reelId);
+    }
+
+    showToast(`📍 Moved "${escapeHtml(moved.title || 'Reel')}" to Position #${toIdx + 1}!`, 'success');
+
+    if (supabaseClient) {
+      for (let r of reels) {
+        try {
+          await supabaseClient.from('reels').upsert({
+            id: r.id,
+            title: r.title,
+            text: r.text,
+            media_type: r.mediaType,
+            video_type: r.videoType || 'url',
+            video_url: r.videoUrl || '',
+            preset_src: r.presetSrc || '',
+            created_at: new Date(r.createdAt).toISOString()
+          }, { onConflict: 'id' });
+        } catch (e) {}
+      }
+    }
+  }
+
+  // --- Quick Swap Between Two Reels ---
+  async function swapReelPositions(reelIdA, reelIdB) {
+    let reels = getReels();
+    const idxA = reels.findIndex(r => r.id === reelIdA);
+    const idxB = reels.findIndex(r => r.id === reelIdB);
+    if (idxA === -1 || idxB === -1 || idxA === idxB) return;
+
+    const temp = reels[idxA];
+    reels[idxA] = reels[idxB];
+    reels[idxB] = temp;
+
+    const baseTime = Date.now() - (reels.length * 10000);
+    reels.forEach((r, i) => { r.createdAt = baseTime + (i * 5000); });
+    saveReels(reels);
+
+    renderAdminReelsManager();
+    updateReelPositionOptions();
+    await renderGloryFeed();
+
+    currentFeedIndex = idxB + 1;
+    scrollToReel(currentFeedIndex);
+
+    if (feedQuickEditDrawer && !feedQuickEditDrawer.classList.contains('hidden')) {
+      openFeedQuickEditor(reelIdA);
+    }
+
+    showToast(`🔀 Swapped positions of #${idxA + 1} and #${idxB + 1}!`, 'success');
+
+    if (supabaseClient) {
+      for (let r of reels) {
+        try {
+          await supabaseClient.from('reels').upsert({
+            id: r.id,
+            title: r.title,
+            text: r.text,
+            media_type: r.mediaType,
+            video_type: r.videoType || 'url',
+            video_url: r.videoUrl || '',
+            preset_src: r.presetSrc || '',
+            created_at: new Date(r.createdAt).toISOString()
+          }, { onConflict: 'id' });
+        } catch (e) {}
+      }
+    }
+  }
+
+  // --- Open Feed Quick Edit Drawer ---
+  function openFeedQuickEditor(reelId = null) {
+    const reels = getReels();
+    if (!reels || reels.length === 0) {
+      showToast('No reels available to edit. Add a reel first in Yash Studio!', 'warning');
+      return;
+    }
+
+    let targetReel = null;
+    if (reelId) {
+      targetReel = reels.find(r => r.id === reelId);
+    }
+    if (!targetReel) {
+      const slides = document.querySelectorAll('#reelsWrapper .reel-slide');
+      const safeIdx = Math.max(0, Math.min(reels.length - 1, currentFeedIndex - 1));
+      const activeSlide = slides[safeIdx];
+      const activeId = activeSlide ? activeSlide.getAttribute('data-id') : null;
+      targetReel = (activeId ? reels.find(r => r.id === activeId) : null) || reels[safeIdx] || reels[0];
+    }
+
+    if (!targetReel) return;
+    currentEditingQuickReelId = targetReel.id;
+
+    const currentPos = reels.findIndex(r => r.id === targetReel.id) + 1;
+    const totalReels = reels.length;
+
+    if (quickEditReelTitle) {
+      quickEditReelTitle.textContent = `Edit Reel #${currentPos} · ${targetReel.title || 'Reel #' + currentPos}`;
+    }
+    if (quickEditReelSubtitle) {
+      quickEditReelSubtitle.textContent = `Feed Lineup: Position ${currentPos} of ${totalReels}`;
+    }
+    if (quickEditPosBadge) {
+      quickEditPosBadge.textContent = `#${currentPos} of ${totalReels}`;
+    }
+
+    if (quickEditMoveUpBtn) {
+      quickEditMoveUpBtn.disabled = currentPos <= 1;
+      quickEditMoveUpBtn.onclick = () => moveReelToPosition(targetReel.id, currentPos - 1);
+    }
+    if (quickEditMoveDownBtn) {
+      quickEditMoveDownBtn.disabled = currentPos >= totalReels;
+      quickEditMoveDownBtn.onclick = () => moveReelToPosition(targetReel.id, currentPos + 1);
+    }
+    if (quickEditMoveTopBtn) {
+      quickEditMoveTopBtn.disabled = currentPos <= 1;
+      quickEditMoveTopBtn.onclick = () => moveReelToPosition(targetReel.id, 1);
+    }
+    if (quickEditMoveBottomBtn) {
+      quickEditMoveBottomBtn.disabled = currentPos >= totalReels;
+      quickEditMoveBottomBtn.onclick = () => moveReelToPosition(targetReel.id, totalReels);
+    }
+
+    if (quickEditPositionPills) {
+      quickEditPositionPills.innerHTML = '';
+      for (let p = 1; p <= totalReels; p++) {
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        const isCur = p === currentPos;
+        pill.className = `pos-pill ${isCur ? 'is-current' : ''}`;
+        pill.innerHTML = `<span>#${p}</span>${isCur ? '<small class="current-tag">Here</small>' : ''}`;
+        pill.title = isCur ? 'Current Position' : `Move to Position #${p}`;
+        if (!isCur) {
+          pill.onclick = (e) => {
+            e.stopPropagation();
+            moveReelToPosition(targetReel.id, p);
+          };
+        }
+        quickEditPositionPills.appendChild(pill);
+      }
+    }
+
+    if (quickEditLineupPreview) {
+      quickEditLineupPreview.innerHTML = '';
+      reels.forEach((r, idx) => {
+        const isCur = r.id === targetReel.id;
+        const row = document.createElement('div');
+        row.className = `lineup-item ${isCur ? 'is-active-reel' : ''}`;
+        const isVid = r.mediaType === 'video';
+        const snippet = r.text ? (r.text.length > 26 ? r.text.substring(0, 26) + '...' : r.text) : '';
+        row.innerHTML = `
+          <div class="lineup-pos-tag">#${idx + 1}</div>
+          <div class="lineup-info">
+            <div class="lineup-title">
+              <span>${escapeHtml(r.title || 'Reel #' + (idx + 1))}</span>
+              ${isCur ? '<span class="lineup-active-chip">★ Editing</span>' : ''}
+            </div>
+            <div class="lineup-meta">${isVid ? '🎬 Video' : '✍️ Text'} · "${escapeHtml(snippet)}"</div>
+          </div>
+          ${!isCur ? `<button type="button" class="lineup-swap-btn" title="Swap position with Reel #${currentPos}">Swap</button>` : ''}
+        `;
+
+        if (!isCur) {
+          const swapBtn = row.querySelector('.lineup-swap-btn');
+          if (swapBtn) {
+            swapBtn.onclick = (e) => {
+              e.stopPropagation();
+              swapReelPositions(targetReel.id, r.id);
+            };
+          }
+          row.onclick = () => {
+            openFeedQuickEditor(r.id);
+          };
+        }
+        quickEditLineupPreview.appendChild(row);
+      });
+    }
+
+    if (quickEditTitleInput) quickEditTitleInput.value = targetReel.title || '';
+    if (quickEditTextInput) quickEditTextInput.value = targetReel.text || '';
+
+    const isVideo = targetReel.mediaType === 'video';
+    if (quickEditTypeVideoBtn && quickEditTypeTextBtn) {
+      if (isVideo) {
+        quickEditTypeVideoBtn.classList.add('active');
+        quickEditTypeTextBtn.classList.remove('active');
+        if (quickEditVideoUrlGroup) quickEditVideoUrlGroup.style.display = 'flex';
+      } else {
+        quickEditTypeTextBtn.classList.add('active');
+        quickEditTypeVideoBtn.classList.remove('active');
+        if (quickEditVideoUrlGroup) quickEditVideoUrlGroup.style.display = 'none';
+      }
+    }
+
+    if (quickEditVideoUrlInput) {
+      quickEditVideoUrlInput.value = targetReel.videoUrl || targetReel.presetSrc || '';
+    }
+
+    if (feedQuickEditDrawer) {
+      feedQuickEditDrawer.classList.remove('hidden');
+    }
+  }
+
+  // --- Close Feed Quick Edit Drawer ---
+  function closeFeedQuickEditor() {
+    if (feedQuickEditDrawer) {
+      feedQuickEditDrawer.classList.add('hidden');
+    }
+    currentEditingQuickReelId = null;
+  }
+
+  // --- Save Quick Edit Reel Changes ---
+  async function saveQuickEditReelChanges() {
+    if (!currentEditingQuickReelId) return;
+    let reels = getReels();
+    const reel = reels.find(r => r.id === currentEditingQuickReelId);
+    if (!reel) {
+      showToast('Reel not found.', 'error');
+      return;
+    }
+
+    const newTitle = quickEditTitleInput ? quickEditTitleInput.value.trim() : '';
+    const newText = quickEditTextInput ? quickEditTextInput.value.trim() : '';
+    const isVideo = quickEditTypeVideoBtn ? quickEditTypeVideoBtn.classList.contains('active') : true;
+    const newVideoUrl = quickEditVideoUrlInput ? quickEditVideoUrlInput.value.trim() : '';
+
+    reel.title = newTitle || reel.title || 'Reel';
+    reel.text = newText;
+    reel.mediaType = isVideo ? 'video' : 'text';
+
+    if (isVideo) {
+      if (newVideoUrl.startsWith('assets/')) {
+        reel.videoType = 'preset';
+        reel.presetSrc = newVideoUrl;
+        reel.videoUrl = '';
+      } else {
+        reel.videoType = 'url';
+        reel.videoUrl = newVideoUrl;
+      }
+    }
+
+    saveReels(reels);
+    await renderGloryFeed();
+    renderAdminReelsManager();
+
+    const curPos = reels.findIndex(r => r.id === reel.id) + 1;
+    currentFeedIndex = curPos;
+    scrollToReel(curPos);
+
+    showToast(`💾 Saved changes to Reel #${curPos} ("${escapeHtml(reel.title)}")!`, 'success');
+    closeFeedQuickEditor();
+
+    if (supabaseClient) {
+      try {
+        await supabaseClient.from('reels').upsert({
+          id: reel.id,
+          title: reel.title,
+          text: reel.text,
+          media_type: reel.mediaType,
+          video_type: reel.videoType || 'url',
+          video_url: reel.videoUrl || '',
+          preset_src: reel.presetSrc || '',
+          created_at: new Date(reel.createdAt).toISOString()
+        }, { onConflict: 'id' });
+      } catch (e) {}
+    }
+  }
+
+  // --- Delete Reel from Quick Editor ---
+  async function deleteQuickEditReel() {
+    if (!currentEditingQuickReelId) return;
+    const reels = getReels();
+    const reel = reels.find(r => r.id === currentEditingQuickReelId);
+    if (!reel) return;
+
+    if (!confirm(`Are you sure you want to delete "${reel.title || 'this reel'}"?`)) {
+      return;
+    }
+
+    const reelId = reel.id;
+    closeFeedQuickEditor();
+    await deleteReel(reelId);
+  }
+
+  // Event Listeners for Quick Editor
+  if (feedQuickEditBtn) {
+    feedQuickEditBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openFeedQuickEditor();
+    });
+  }
+
+  if (quickEditCloseBtn) {
+    quickEditCloseBtn.addEventListener('click', closeFeedQuickEditor);
+  }
+  if (quickEditCancelBtn) {
+    quickEditCancelBtn.addEventListener('click', closeFeedQuickEditor);
+  }
+  if (quickEditBackdrop) {
+    quickEditBackdrop.addEventListener('click', closeFeedQuickEditor);
+  }
+
+  if (quickEditSaveBtn) {
+    quickEditSaveBtn.addEventListener('click', saveQuickEditReelChanges);
+  }
+  if (quickEditDeleteBtn) {
+    quickEditDeleteBtn.addEventListener('click', deleteQuickEditReel);
+  }
+
+  if (quickEditTypeVideoBtn && quickEditTypeTextBtn) {
+    quickEditTypeVideoBtn.addEventListener('click', () => {
+      quickEditTypeVideoBtn.classList.add('active');
+      quickEditTypeTextBtn.classList.remove('active');
+      if (quickEditVideoUrlGroup) quickEditVideoUrlGroup.style.display = 'flex';
+    });
+    quickEditTypeTextBtn.addEventListener('click', () => {
+      quickEditTypeTextBtn.classList.add('active');
+      quickEditTypeVideoBtn.classList.remove('active');
+      if (quickEditVideoUrlGroup) quickEditVideoUrlGroup.style.display = 'none';
+    });
+  }
+
+  if (quickEditPresetChips) {
+    quickEditPresetChips.querySelectorAll('.preset-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const src = chip.getAttribute('data-src');
+        if (quickEditVideoUrlInput && src) {
+          quickEditVideoUrlInput.value = src;
+          showToast(`Selected preset: ${chip.textContent.trim()}`, 'info');
+        }
+      });
+    });
+  }
 
   // STRICT SINGLE EVENT LISTENER (Zero duplicate triggers)
   if (adminSaveReelBtn) {
@@ -2895,6 +3281,7 @@
       const section = document.createElement('section');
       section.className = `reel-slide ${index === 1 ? 'active' : ''}`;
       section.setAttribute('data-index', index.toString());
+      section.setAttribute('data-id', reel.id);
       section.id = `reel-${index}`;
 
       section.innerHTML = `
@@ -3036,7 +3423,7 @@
       }
 
       function revealAndTogglePlay(e) {
-        if (e && e.target && (e.target.closest('.reel-action-bar') || e.target.closest('.feed-top-bar') || e.target.closest('.reel-reply-box') || e.target.closest('.reel-retry-btn') || e.target.closest('#reelCommentsDrawer'))) return;
+        if (e && e.target && (e.target.closest('.reel-action-bar') || e.target.closest('.feed-top-bar') || e.target.closest('.reel-reply-box') || e.target.closest('.reel-retry-btn') || e.target.closest('#reelCommentsDrawer') || e.target.closest('#feedQuickEditDrawer'))) return;
 
         if (!section.classList.contains('revealed')) {
           section.classList.add('revealed');
@@ -3068,7 +3455,7 @@
       let tapTimeout = null;
 
       function handleStageTap(e) {
-        if (e.target.closest('.reel-action-bar') || e.target.closest('.feed-top-bar') || e.target.closest('.reel-reply-box') || e.target.closest('.reel-retry-btn') || e.target.closest('#reelCommentsDrawer')) return;
+        if (e.target.closest('.reel-action-bar') || e.target.closest('.feed-top-bar') || e.target.closest('.reel-reply-box') || e.target.closest('.reel-retry-btn') || e.target.closest('#reelCommentsDrawer') || e.target.closest('#feedQuickEditDrawer')) return;
 
         const currentTime = Date.now();
         const tapLength = currentTime - lastTapTime;
@@ -3397,6 +3784,15 @@
 
     // Keyboard Navigation in Feed (1-by-1 Reel Transitions)
     window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (feedQuickEditDrawer && !feedQuickEditDrawer.classList.contains('hidden')) {
+          closeFeedQuickEditor();
+          return;
+        }
+      }
+      if (feedQuickEditDrawer && !feedQuickEditDrawer.classList.contains('hidden')) {
+        return;
+      }
       if (gloryFeed && !gloryFeed.classList.contains('hidden')) {
         const slides = document.querySelectorAll('#reelsWrapper .reel-slide');
         if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
@@ -3490,17 +3886,22 @@
   // --- Master View Switcher ---
   function renderView(role, isFreshLogin = false) {
     if (role === 'glory') {
+      const isActuallyAdmin = localStorage.getItem('cinema_session_role') === 'admin' || isYashViewer;
       if (isYashViewer) {
         if (feedBadgeText) feedBadgeText.textContent = '👑 Yash View ✦ Live';
         if (feedBadgePill) feedBadgePill.classList.add('is-yash');
         if (feedBackToStudioBtn) feedBackToStudioBtn.classList.remove('hidden');
+        if (feedQuickEditBtn) feedQuickEditBtn.classList.remove('hidden');
       } else {
         if (feedBadgeText) feedBadgeText.textContent = 'Glory Feed ✦ Live';
         if (feedBadgePill) feedBadgePill.classList.remove('is-yash');
-        const isActuallyAdmin = localStorage.getItem('cinema_session_role') === 'admin';
         if (feedBackToStudioBtn) {
           if (isActuallyAdmin) feedBackToStudioBtn.classList.remove('hidden');
           else feedBackToStudioBtn.classList.add('hidden');
+        }
+        if (feedQuickEditBtn) {
+          if (isActuallyAdmin) feedQuickEditBtn.classList.remove('hidden');
+          else feedQuickEditBtn.classList.add('hidden');
         }
       }
 
@@ -3527,6 +3928,8 @@
     } else if (role === 'admin') {
       isYashViewer = false;
       if (feedBackToStudioBtn) feedBackToStudioBtn.classList.add('hidden');
+      if (feedQuickEditBtn) feedQuickEditBtn.classList.add('hidden');
+      closeFeedQuickEditor();
       if (gloryIntroScreen) gloryIntroScreen.classList.add('hidden');
       if (gloryFeed) {
         gloryFeed.classList.add('hidden');
@@ -3562,6 +3965,8 @@
       // Default Login Screen: Resume font cycling on "YASH"
       isYashViewer = false;
       if (feedBackToStudioBtn) feedBackToStudioBtn.classList.add('hidden');
+      if (feedQuickEditBtn) feedQuickEditBtn.classList.add('hidden');
+      closeFeedQuickEditor();
       if (gloryIntroScreen) gloryIntroScreen.classList.add('hidden');
       if (gloryFeed) {
         gloryFeed.classList.add('hidden');
@@ -3656,6 +4061,8 @@
     passwordInput.value = '';
     if (gloryIntroScreen) gloryIntroScreen.classList.add('hidden');
     if (feedBackToStudioBtn) feedBackToStudioBtn.classList.add('hidden');
+    if (feedQuickEditBtn) feedQuickEditBtn.classList.add('hidden');
+    closeFeedQuickEditor();
     renderView(null);
     showToast('Signed out successfully.', 'info');
   }
@@ -3670,6 +4077,7 @@
       if (feedBadgeText) feedBadgeText.textContent = '👑 Yash View ✦ Live';
       if (feedBadgePill) feedBadgePill.classList.add('is-yash');
       if (feedBackToStudioBtn) feedBackToStudioBtn.classList.remove('hidden');
+      if (feedQuickEditBtn) feedQuickEditBtn.classList.remove('hidden');
       showToast('Viewing feed as Yash 👑. You can watch reels & comment as Yash!', 'success');
     });
   }
@@ -3682,6 +4090,7 @@
       if (feedBadgeText) feedBadgeText.textContent = 'Glory Feed ✦ Live';
       if (feedBadgePill) feedBadgePill.classList.remove('is-yash');
       if (feedBackToStudioBtn) feedBackToStudioBtn.classList.remove('hidden');
+      if (feedQuickEditBtn) feedQuickEditBtn.classList.remove('hidden');
       showToast("Previewing Glory's multi-reel feed. Tap Studio to return.", 'info');
     });
   }
