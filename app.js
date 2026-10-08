@@ -950,6 +950,7 @@
 
       const timeStr = formatRelativeTime(c.createdAt || Date.now());
       const authorText = isYash ? 'Yash 👑' : 'Glory ❤️';
+      const isActuallyAdmin = localStorage.getItem('cinema_session_role') === 'admin' || isYashViewer;
 
       const item = document.createElement('div');
       item.className = `ig-comment-item ${isYash ? 'is-yash' : ''}`;
@@ -965,7 +966,28 @@
           </div>
           <div class="ig-comment-text">${escapeHtml(c.text)}</div>
         </div>
+        ${isActuallyAdmin ? `
+        <button type="button" class="ig-comment-admin-delete-btn" title="Delete comment as Admin" data-id="${c.id}" aria-label="Delete comment">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+        ` : ''}
       `;
+
+      if (isActuallyAdmin) {
+        const delBtn = item.querySelector('.ig-comment-admin-delete-btn');
+        if (delBtn) {
+          delBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (confirm(`Delete this comment from ${authorText}?\n"${c.text && c.text.length > 40 ? c.text.slice(0, 40) + '...' : (c.text || '')}"`)) {
+              deleteGloryReply(c.id);
+            }
+          };
+        }
+      }
+
       listEl.appendChild(item);
     });
 
@@ -1282,19 +1304,80 @@
     });
   }
 
-  function deleteGloryReply(id) {
+  async function deleteGloryReply(id) {
     let replies = getGloryReplies();
+    const targetReply = replies.find(r => r.id === id);
     replies = replies.filter(r => r.id !== id);
     saveGloryReplies(replies);
+
     renderAdminReplies();
-    showToast('Reply removed.', 'info');
+    if (activeCommentReelId) {
+      renderCommentsList(activeCommentReelId);
+    }
+    renderAdminReelsManager();
+
+    if (targetReply) {
+      const rId = targetReply.reelId;
+      const remainingCount = replies.filter(r => (r.reelId === rId || (!r.reelId && r.reelIndex === targetReply.reelIndex)) && !r.text.includes('[GLORY_LIKED]') && !r.text.includes('[LIKE]')).length;
+      const btnCounts = document.querySelectorAll(`.ig-comment-btn[data-reel-id="${rId}"] .ig-comments-count`);
+      btnCounts.forEach(el => el.textContent = remainingCount > 0 ? remainingCount : 'Comment');
+    }
+
+    updateAdminMetrics();
+    showToast('🗑️ Comment deleted successfully.', 'info');
+
+    const { url: savedUrl, key: savedKey } = getValidSupabaseConfig();
+    if (savedUrl && savedKey) {
+      try {
+        await fetch(`${savedUrl}/rest/v1/glory_replies?id=eq.${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`
+          }
+        });
+      } catch (err) {}
+    }
+    if (supabaseClient && typeof supabaseClient.from === 'function') {
+      try {
+        await supabaseClient.from('glory_replies').delete().eq('id', id);
+      } catch (err) {}
+    }
   }
 
-  function clearAllGloryReplies() {
+  async function clearAllGloryReplies() {
     saveGloryReplies([]);
     renderAdminReplies();
+    if (activeCommentReelId) {
+      renderCommentsList(activeCommentReelId);
+    }
+    renderAdminReelsManager();
+    const btnCounts = document.querySelectorAll('.ig-comment-btn .ig-comments-count');
+    btnCounts.forEach(el => el.textContent = 'Comment');
+    updateAdminMetrics();
     showToast('Glory inbox cleared.', 'info');
+
+    const { url: savedUrl, key: savedKey } = getValidSupabaseConfig();
+    if (savedUrl && savedKey) {
+      try {
+        await fetch(`${savedUrl}/rest/v1/glory_replies?id=neq.placeholder_keep_alive`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': savedKey,
+            'Authorization': `Bearer ${savedKey}`
+          }
+        });
+      } catch (err) {}
+    }
+    if (supabaseClient && typeof supabaseClient.from === 'function') {
+      try {
+        await supabaseClient.from('glory_replies').delete().neq('id', 'placeholder_keep_alive');
+      } catch (err) {}
+    }
   }
+
+  window.__deleteGloryReply = deleteGloryReply;
+  window.__clearAllGloryReplies = clearAllGloryReplies;
 
   if (adminClearRepliesBtn) {
     adminClearRepliesBtn.onclick = clearAllGloryReplies;

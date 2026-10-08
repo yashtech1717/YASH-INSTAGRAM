@@ -2727,6 +2727,39 @@ html, body {
   word-break: break-word;
 }
 
+/* Admin Comment Delete Button in Comments Drawer */
+.ig-comment-admin-delete-btn {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fca5a5;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.8;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ig-comment-admin-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.35);
+  border-color: #ef4444;
+  color: #ffffff;
+  opacity: 1;
+  transform: scale(1.08);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.45);
+}
+
+.ig-comment-admin-delete-btn:active {
+  transform: scale(0.95);
+}
+
 .ig-comments-empty {
   text-align: center;
   padding: 40px 20px;
