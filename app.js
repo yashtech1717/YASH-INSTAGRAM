@@ -4080,7 +4080,7 @@
 
     let hasError = false;
     if (!userVal) {
-      usernameError.textContent = 'Please enter your ID.';
+      usernameError.textContent = 'Please enter your name.';
       if (userCapsule) userCapsule.classList.add('has-error');
       hasError = true;
     }
@@ -4105,11 +4105,11 @@
     }
 
     if (!matchedRole) {
-      usernameError.textContent = 'Invalid ID or password';
+      usernameError.textContent = 'Invalid name or password';
       if (userCapsule) userCapsule.classList.add('has-error');
       if (passCapsule) passCapsule.classList.add('has-error');
       shakeForm();
-      showToast('Invalid credentials! Check ID & password.', 'error');
+      showToast('Invalid credentials! Check name & password.', 'error');
       return;
     }
 
