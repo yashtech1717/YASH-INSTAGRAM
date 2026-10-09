@@ -4085,7 +4085,7 @@
       hasError = true;
     }
     if (!passVal) {
-      passwordError.textContent = 'Please enter your password.';
+      passwordError.textContent = 'Please enter your nickname.';
       if (passCapsule) passCapsule.classList.add('has-error');
       hasError = true;
     }
@@ -4105,11 +4105,11 @@
     }
 
     if (!matchedRole) {
-      usernameError.textContent = 'Invalid name or password';
+      usernameError.textContent = 'Invalid name or nickname';
       if (userCapsule) userCapsule.classList.add('has-error');
       if (passCapsule) passCapsule.classList.add('has-error');
       shakeForm();
-      showToast('Invalid credentials! Check name & password.', 'error');
+      showToast('Invalid credentials! Check name & nickname.', 'error');
       return;
     }
 
